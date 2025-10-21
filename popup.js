@@ -1,18 +1,29 @@
-const updatePlaylistView = (playlistId) => {
+const updatePlaylistView = (playlistId, playlistTitle) => {
   const container = document.getElementById("playlist");
   container.innerHTML = "";
 
   if (playlistId) {
-    const playlistElement = document.createElement("div");
-    playlistElement.className = "playlist-item";
-    playlistElement.textContent = `Current Playlist ID: ${playlistId}`;
-    container.appendChild(playlistElement);
+    const titleEl = document.createElement("div");
+    titleEl.className = "playlist-title";
+    titleEl.textContent = playlistTitle
+      ? `${playlistTitle}`
+      : "(Unknown title)";
+
+    const idEl = document.createElement("div");
+    idEl.className = "playlist-id";
+    idEl.textContent = `ID: ${playlistId}`;
+
+    container.appendChild(titleEl);
+    container.appendChild(idEl);
   } else {
     container.innerHTML = '<i class="row">No playlist detected</i>';
   }
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const { playlistId } = await chrome.storage.local.get("playlistId");
-  updatePlaylistView(playlistId);
+  const { playlistId, playlistTitle } = await chrome.storage.local.get([
+    "playlistId",
+    "playlistTitle",
+  ]);
+  updatePlaylistView(playlistId, playlistTitle);
 });
