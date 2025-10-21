@@ -1,10 +1,24 @@
-<link href="popup.css" rel="stylesheet" type="text/css" />
-<script type="module" src="popup.js"></script>
-
-<div class="container">
-  <div>
-    <div class="title">Your bookmarks for this video</div>
-
-    <div class="bookmarks" id="bookmarks"></div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TrackHero</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        min-width: 200px;
+        padding: 10px;
+      }
+      .playlist-item {
+        padding: 6px;
+        border-radius: 6px;
+        background: #f2f2f2;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Your following tracks:</h3>
+    <div class="playlist" id="playlist"><i>Loading...</i></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
