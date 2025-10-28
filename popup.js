@@ -1,5 +1,5 @@
 // update the popup view with the current playlist ID
-const updateUI = (playlistId) => {
+const updateUI = (playlistId, playlists) => {
   const container = document.getElementById("playlist");
   container.innerHTML = "";
 
@@ -9,9 +9,15 @@ const updateUI = (playlistId) => {
   } else {
     const titleElement = document.createElement("div");
     titleElement.className = "playlist-id";
-    titleElement.textContent = `${playlistId}`;
-
+    titleElement.textContent = `Currently watching: ${playlistId}`;
     container.appendChild(titleElement);
+
+    playlists.forEach((playlist) => {
+      const playlistElement = document.createElement("div");
+      playlistElement.className = "playlist-item";
+      playlistElement.textContent = `${playlist.playlistTitle} - ${playlist.playlistId}`;
+      container.appendChild(playlistElement);
+    });
   }
 };
 
@@ -31,5 +37,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const currentPlaylistId = urlParams.get("list");
   console.log("Current playlist ID:", currentPlaylistId);
 
-  updateUI(currentPlaylistId);
+  if (activeTab.url && activeTab.url.includes("youtube.com/watch")) {
+    chrome.storage.local.get(["playlists"], (result) => {
+      const playlists = result.playlists || [];
+      updateUI(currentPlaylistId, playlists);
+    });
+  }
 });
