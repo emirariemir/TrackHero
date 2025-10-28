@@ -1,29 +1,35 @@
-const updatePlaylistView = (playlistId, playlistTitle) => {
+// update the popup view with the current playlist ID
+const updateUI = (playlistId) => {
   const container = document.getElementById("playlist");
   container.innerHTML = "";
 
-  if (playlistId) {
-    const titleEl = document.createElement("div");
-    titleEl.className = "playlist-title";
-    titleEl.textContent = playlistTitle
-      ? `${playlistTitle}`
-      : "(Unknown title)";
-
-    const idEl = document.createElement("div");
-    idEl.className = "playlist-id";
-    idEl.textContent = `ID: ${playlistId}`;
-
-    container.appendChild(titleEl);
-    container.appendChild(idEl);
-  } else {
+  if (!playlistId) {
     container.innerHTML = '<i class="row">No playlist detected</i>';
+    return;
+  } else {
+    const titleElement = document.createElement("div");
+    titleElement.className = "playlist-id";
+    titleElement.textContent = `${playlistId}`;
+
+    container.appendChild(titleElement);
   }
 };
 
+// get the currently active tab
+const getActiveTab = async () => {
+  let queryOptions = { active: true, currentWindow: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+};
+
+// when the popup loads, fetch the active tab and update the UI
 document.addEventListener("DOMContentLoaded", async () => {
-  const { playlistId, playlistTitle } = await chrome.storage.local.get([
-    "playlistId",
-    "playlistTitle",
-  ]);
-  updatePlaylistView(playlistId, playlistTitle);
+  const activeTab = await getActiveTab();
+  const urlParameters = activeTab.url.split("?")[1];
+  const urlParams = new URLSearchParams(urlParameters);
+
+  const currentPlaylistId = urlParams.get("list");
+  console.log("Current playlist ID:", currentPlaylistId);
+
+  updateUI(currentPlaylistId);
 });
