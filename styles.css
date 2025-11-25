@@ -145,3 +145,34 @@ h3 {
   align-items: center;
   gap: 4px;
 }
+
+/* Progress Bar Styles */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background-color: #333;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 3px;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Change color to green if 100% complete */
+.progress-fill.completed {
+  background-color: #4ade80;
+}

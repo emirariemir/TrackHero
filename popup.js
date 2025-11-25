@@ -1,113 +1,179 @@
 // popup.js
 
 /**
- * 1. DOM SCRAPER (Runs inside the page)
+ * 1. DOM SCRAPER (Runs inside the YouTube page)
+ * Returns: { title: string, total: number, completed: number }
  */
-const fetchPlaylistTitleFromDOM = (playlistId) => {
-  const selector = `a[href*="${playlistId}"].yt-simple-endpoint.style-scope.yt-formatted-string`;
-  const titleElement = document.querySelector(selector);
-  return titleElement ? titleElement.textContent.trim() : null;
+const scrapePlaylistData = (playlistId) => {
+  // A. Get Title
+  const titleSelector = `a[href*="${playlistId}"].yt-simple-endpoint.style-scope.yt-formatted-string`;
+  const titleEl = document.querySelector(titleSelector);
+  const title = titleEl ? titleEl.textContent.trim() : "Unknown Playlist";
+
+  // B. Get Total Video Count
+  let totalVideos = 0;
+  const indexElement = document.querySelector(
+    ".index-message-wrapper .index-message"
+  );
+  if (indexElement) {
+    const text = indexElement.textContent.trim();
+    const parts = text.split("/");
+    if (parts.length > 1) {
+      totalVideos = parseInt(parts[1].trim(), 10) || 0;
+    }
+  }
+
+  // C. Count Completed Videos (Red full bar)
+  // We scope this to the playlist panel renderer to be safe
+  const progressBars = document.querySelectorAll(
+    "ytd-playlist-panel-video-renderer #progress"
+  );
+  let completedCount = 0;
+
+  progressBars.forEach((bar) => {
+    // YouTube sets this inline style to 100% when finished
+    if (bar.style.width === "100%") {
+      completedCount++;
+    }
+  });
+
+  return {
+    title: title,
+    total: totalVideos,
+    completed: completedCount,
+  };
 };
 
 /**
  * 2. CORE FUNCTIONS
  */
 
-// Function to handle saving the playlist
-const handleSave = (playlistId, playlistTitle) => {
+// Helper to calculate percentage and generate HTML for progress
+const generateProgressHTML = (completed, total) => {
+  // Avoid division by zero
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const isFinished = percentage === 100;
+
+  return `
+    <div class="stats-row">
+      <span>${completed} / ${total} watched</span>
+      <span>${percentage}%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill ${
+        isFinished ? "completed" : ""
+      }" style="width: ${percentage}%"></div>
+    </div>
+  `;
+};
+
+const handleSave = (playlistId, data) => {
   chrome.storage.local.get(["playlists"], (result) => {
     const playlists = result.playlists || [];
 
-    // Check if already saved to prevent duplicates
-    const exists = playlists.some((p) => p.playlistId === playlistId);
+    // Check if exists
+    const existingIndex = playlists.findIndex(
+      (p) => p.playlistId === playlistId
+    );
 
-    if (!exists) {
-      const newPlaylist = {
-        playlistId: playlistId,
-        playlistTitle: playlistTitle || "Unknown Playlist",
-      };
+    const newEntry = {
+      playlistId: playlistId,
+      playlistTitle: data.title,
+      totalVideos: data.total,
+      completedVideos: data.completed,
+      lastUpdated: new Date().toISOString(),
+    };
 
-      const updatedPlaylists = [...playlists, newPlaylist];
+    let updatedPlaylists;
 
-      chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
-        // Refresh the UI with the new data
-        updateUI(playlistId, playlistTitle, updatedPlaylists);
-      });
+    if (existingIndex > -1) {
+      // Update existing
+      updatedPlaylists = [...playlists];
+      updatedPlaylists[existingIndex] = newEntry;
+    } else {
+      // Add new
+      updatedPlaylists = [...playlists, newEntry];
     }
+
+    chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
+      updateUI(playlistId, data, updatedPlaylists);
+    });
   });
 };
 
-// Function to update the DOM
-const updateUI = (currentId, currentTitle, playlists) => {
+// Refined Update UI
+const updateUI = (currentId, currentData, playlists) => {
   const currentContainer = document.getElementById("current-section");
   const savedContainer = document.getElementById("saved-list");
 
-  // Reset containers
   currentContainer.innerHTML = "";
   savedContainer.innerHTML = "";
 
-  // Check if the current playlist is already in our saved list
   const isAlreadySaved = playlists.some((p) => p.playlistId === currentId);
 
-  // --- RENDER CURRENT SECTION ---
+  // --- 1. RENDER CURRENT SECTION ---
   if (!currentId) {
     currentContainer.innerHTML =
       '<div class="empty-state">No active playlist found</div>';
   } else {
-    const displayName = currentTitle || "Loading title...";
+    // Use scraped data if available, otherwise defaults
+    const title = currentData?.title || "Loading...";
+    const total = currentData?.total || 0;
+    const completed = currentData?.completed || 0;
 
     const activeCard = document.createElement("div");
     activeCard.className = "playlist-item active-card";
 
-    // Base HTML for the card
     let cardHtml = `
       <span class="status-badge">Now Watching</span>
-      <div class="playlist-title" title="${displayName}">${displayName}</div>
+      <div class="playlist-title" title="${title}">${title}</div>
       <div class="playlist-id">ID: ${currentId}</div>
+      ${generateProgressHTML(completed, total)}
     `;
 
-    // Logic: If saved, show "Checkmark", if not, show "Button"
     if (isAlreadySaved) {
-      cardHtml += `
-        <div class="saved-indicator">
-          Saved to library!
-        </div>
-      `;
-      activeCard.innerHTML = cardHtml;
-    } else {
+      cardHtml += `<div class="saved-indicator">Tracking in library</div>`;
       activeCard.innerHTML = cardHtml;
 
-      // Create the button programmatically so we can attach the event listener easily
+      // Since we have fresh data, let's silently update the storage
+      // so the saved list is always accurate.
+      if (currentData) {
+        handleSave(currentId, currentData);
+      }
+    } else {
+      activeCard.innerHTML = cardHtml;
       const saveBtn = document.createElement("button");
       saveBtn.className = "action-btn";
       saveBtn.textContent = "Track this Playlist";
-
-      // Attach the click event
-      saveBtn.onclick = () => handleSave(currentId, displayName);
-
+      saveBtn.onclick = () => handleSave(currentId, currentData);
       activeCard.appendChild(saveBtn);
     }
 
     currentContainer.appendChild(activeCard);
   }
 
-  // --- RENDER SAVED LIST ---
+  // --- 2. RENDER SAVED LIST ---
   if (playlists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
   } else {
-    // Reverse the array so newest added shows at the top
+    // Sort by lastUpdated if available, or just reverse
     playlists
       .slice()
       .reverse()
       .forEach((playlist) => {
         const card = document.createElement("div");
         card.className = "playlist-item";
+
+        // Fallback for old data that might not have stats yet
+        const pTotal = playlist.totalVideos || 0;
+        const pCompleted = playlist.completedVideos || 0;
+
         card.innerHTML = `
         <div class="playlist-title" title="${playlist.playlistTitle}">
             ${playlist.playlistTitle}
         </div>
-        <div class="playlist-id">${playlist.playlistId}</div>
+        ${generateProgressHTML(pCompleted, pTotal)}
       `;
         savedContainer.appendChild(card);
       });
@@ -128,32 +194,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!activeTab || !activeTab.url) return;
 
-  const urlParameters = activeTab.url.split("?")[1];
-  const urlParams = new URLSearchParams(urlParameters);
+  const urlParams = new URLSearchParams(activeTab.url.split("?")[1]);
   const currentPlaylistId = urlParams.get("list");
 
-  let currentPlaylistTitle = null;
+  // Default data object
+  let currentData = null;
 
-  // If we are on a YouTube watch page with a list param
   if (activeTab.url.includes("youtube.com/watch") && currentPlaylistId) {
     try {
       const injectionResults = await chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
-        func: fetchPlaylistTitleFromDOM,
+        func: scrapePlaylistData,
         args: [currentPlaylistId],
       });
 
       if (injectionResults && injectionResults[0]) {
-        currentPlaylistTitle = injectionResults[0].result;
+        currentData = injectionResults[0].result;
+        console.log("Scraped Data:", currentData);
       }
     } catch (e) {
       console.error("Script injection failed", e);
     }
   }
 
-  // Initial Load of Storage
   chrome.storage.local.get(["playlists"], (result) => {
     const playlists = result.playlists || [];
-    updateUI(currentPlaylistId, currentPlaylistTitle, playlists);
+    updateUI(currentPlaylistId, currentData, playlists);
   });
 });
