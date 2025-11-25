@@ -2,34 +2,37 @@
 <html>
   <head>
     <title>TrackHero</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        min-width: 200px;
-        padding: 10px;
-      }
-      .playlist-item {
-        padding: 6px;
-        border-radius: 6px;
-        background: #f2f2f2;
-        margin-top: 8px;
-      }
-      .playlist-title {
-        font-weight: 600;
-        margin-bottom: 4px;
-      }
-      .playlist-id {
-        font-size: 12px;
-        color: #666;
-      }
-      .playlist-total {
-        margin-top: 6px;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <h3>Your following tracks:</h3>
-    <div class="playlist" id="playlist"><i>Loading...</i></div>
+    <h3>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        style="color: var(--accent-color)"
+      >
+        <path d="M9 18V5l12-2v13"></path>
+        <circle cx="6" cy="18" r="3"></circle>
+        <circle cx="18" cy="16" r="3"></circle>
+      </svg>
+      TrackHero
+    </h3>
+
+    <div id="current-section" class="current-container"></div>
+
+    <div
+      style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px"
+    >
+      Saved Playlists
+    </div>
+    <div id="saved-list"></div>
+
     <script src="popup.js"></script>
   </body>
 </html>
