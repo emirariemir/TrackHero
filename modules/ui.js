@@ -17,12 +17,21 @@ const generateProgressHTML = (completed, total) => {
   `;
 };
 
-export const renderUI = (currentId, currentData, playlists, onSave) => {
+export const renderUI = (
+  currentId,
+  videoId,
+  currentData,
+  playlists,
+  onSave,
+  onMark
+) => {
   const currentContainer = document.getElementById("current-section");
   const savedContainer = document.getElementById("saved-list");
 
   currentContainer.innerHTML = "";
   savedContainer.innerHTML = "";
+
+  const playlistIndex = playlists.findIndex((p) => p.playlistId === currentId);
 
   const isAlreadySaved = playlists.some((p) => p.playlistId === currentId);
 
@@ -34,7 +43,7 @@ export const renderUI = (currentId, currentData, playlists, onSave) => {
     const title = currentData?.title || "Loading...";
     const channel = currentData?.channelName || "";
     const total = currentData?.total || 0;
-    const completed = currentData?.completed || 0;
+    const completed = playlists[playlistIndex]?.completedVideos.length || 0;
 
     const activeCard = document.createElement("div");
     activeCard.className = "playlist-item active-card";
@@ -52,10 +61,17 @@ export const renderUI = (currentId, currentData, playlists, onSave) => {
     `;
 
     if (isAlreadySaved) {
-      cardHtml += `<div class="saved-indicator">Tracking in library</div>`;
       activeCard.innerHTML = cardHtml;
-      // Auto-update if it's already saved
-      if (currentData) onSave(currentId, currentData);
+
+      const markButton = document.createElement("button");
+      markButton.className = "action-btn";
+      markButton.textContent = "Mark Video as Watched";
+
+      markButton.onclick = () => onMark(currentId, videoId);
+
+      activeCard.appendChild(markButton);
+
+      //if (currentData) onSave(currentId, currentData);
     } else {
       activeCard.innerHTML = cardHtml;
       const saveBtn = document.createElement("button");
@@ -90,7 +106,10 @@ export const renderUI = (currentId, currentData, playlists, onSave) => {
             ${playlist.playlistTitle}
         </div>
         ${pChannel}
-        ${generateProgressHTML(playlist.completedVideos, playlist.totalVideos)}
+        ${generateProgressHTML(
+          playlist.completedVideos.length,
+          playlist.totalVideos
+        )}
       `;
         savedContainer.appendChild(card);
       });

@@ -3,11 +3,13 @@ import { getActiveTab } from "./modules/utils.js";
 import { scrapePlaylistData } from "./modules/scraper.js";
 import { getPlaylists, savePlaylist } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
+import { markVideoAsWatched } from "./modules/storage.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 1. Get Environment Data
   const activeTab = await getActiveTab();
   let currentPlaylistId = null;
+  let videoId = null;
   let currentData = null;
 
   // 2. Try to scrape if we are on YouTube
@@ -18,6 +20,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   ) {
     const urlParams = new URLSearchParams(activeTab.url.split("?")[1]);
     currentPlaylistId = urlParams.get("list");
+
+    videoId = urlParams.get("v");
 
     if (currentPlaylistId) {
       try {
@@ -41,10 +45,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSaveAction = async (id, data) => {
     const updatedList = await savePlaylist(id, data);
     // Re-render with the new list
-    renderUI(id, data, updatedList, handleSaveAction);
+    renderUI(
+      id,
+      videoId,
+      data,
+      updatedList,
+      handleSaveAction,
+      handleMarkAction
+    );
+  };
+
+  const handleMarkAction = async (playlistId, videoId) => {
+    const updatedList = await markVideoAsWatched(playlistId, videoId);
+    // Re-render with the new list
+    renderUI(
+      playlistId,
+      videoId,
+      currentData,
+      updatedList,
+      handleSaveAction,
+      handleMarkAction
+    );
   };
 
   // 4. Initial Load & Render
   const savedPlaylists = await getPlaylists();
-  renderUI(currentPlaylistId, currentData, savedPlaylists, handleSaveAction);
+  renderUI(
+    currentPlaylistId,
+    videoId,
+    currentData,
+    savedPlaylists,
+    handleSaveAction,
+    handleMarkAction
+  );
 });

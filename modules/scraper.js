@@ -24,20 +24,9 @@ export const scrapePlaylistData = (playlistId) => {
     }
   }
 
-  // D. Count Completed Videos
-  const progressBars = document.querySelectorAll(
-    "ytd-playlist-panel-video-renderer #progress"
-  );
-  let completedCount = 0;
-
-  progressBars.forEach((bar) => {
-    if (bar.style.width === "100%") completedCount++;
-  });
-
   return {
     title,
     channelName,
     total: totalVideos,
-    completed: completedCount,
   };
 };
