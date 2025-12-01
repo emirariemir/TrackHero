@@ -1,8 +1,7 @@
 // popup.js
 
 /**
- * 1. DOM SCRAPER (Runs inside the YouTube page)
- * Returns: { title: string, total: number, completed: number }
+ * 1. DOM SCRAPER
  */
 const scrapePlaylistData = (playlistId) => {
   // A. Get Title
@@ -10,7 +9,13 @@ const scrapePlaylistData = (playlistId) => {
   const titleEl = document.querySelector(titleSelector);
   const title = titleEl ? titleEl.textContent.trim() : "Unknown Playlist";
 
-  // B. Get Total Video Count
+  // --- NEW: B. Get Channel Name ---
+  // We look inside the playlist panel for the 'byline' span
+  const channelSelector = "ytd-playlist-panel-renderer span#byline";
+  const channelEl = document.querySelector(channelSelector);
+  const channelName = channelEl ? channelEl.textContent.trim() : "";
+
+  // C. Get Total Video Count
   let totalVideos = 0;
   const indexElement = document.querySelector(
     ".index-message-wrapper .index-message"
@@ -23,15 +28,13 @@ const scrapePlaylistData = (playlistId) => {
     }
   }
 
-  // C. Count Completed Videos (Red full bar)
-  // We scope this to the playlist panel renderer to be safe
+  // D. Count Completed Videos
   const progressBars = document.querySelectorAll(
     "ytd-playlist-panel-video-renderer #progress"
   );
   let completedCount = 0;
 
   progressBars.forEach((bar) => {
-    // YouTube sets this inline style to 100% when finished
     if (bar.style.width === "100%") {
       completedCount++;
     }
@@ -39,6 +42,7 @@ const scrapePlaylistData = (playlistId) => {
 
   return {
     title: title,
+    channelName: channelName,
     total: totalVideos,
     completed: completedCount,
   };
@@ -70,8 +74,6 @@ const generateProgressHTML = (completed, total) => {
 const handleSave = (playlistId, data) => {
   chrome.storage.local.get(["playlists"], (result) => {
     const playlists = result.playlists || [];
-
-    // Check if exists
     const existingIndex = playlists.findIndex(
       (p) => p.playlistId === playlistId
     );
@@ -79,6 +81,7 @@ const handleSave = (playlistId, data) => {
     const newEntry = {
       playlistId: playlistId,
       playlistTitle: data.title,
+      channelName: data.channelName,
       totalVideos: data.total,
       completedVideos: data.completed,
       lastUpdated: new Date().toISOString(),
@@ -87,11 +90,9 @@ const handleSave = (playlistId, data) => {
     let updatedPlaylists;
 
     if (existingIndex > -1) {
-      // Update existing
       updatedPlaylists = [...playlists];
       updatedPlaylists[existingIndex] = newEntry;
     } else {
-      // Add new
       updatedPlaylists = [...playlists, newEntry];
     }
 
@@ -101,7 +102,6 @@ const handleSave = (playlistId, data) => {
   });
 };
 
-// Refined Update UI
 const updateUI = (currentId, currentData, playlists) => {
   const currentContainer = document.getElementById("current-section");
   const savedContainer = document.getElementById("saved-list");
@@ -116,17 +116,23 @@ const updateUI = (currentId, currentData, playlists) => {
     currentContainer.innerHTML =
       '<div class="empty-state">No active playlist found</div>';
   } else {
-    // Use scraped data if available, otherwise defaults
     const title = currentData?.title || "Loading...";
+    const channel = currentData?.channelName || "";
     const total = currentData?.total || 0;
     const completed = currentData?.completed || 0;
 
     const activeCard = document.createElement("div");
     activeCard.className = "playlist-item active-card";
 
+    // render channel name if it exists
+    const channelHtml = channel
+      ? `<div class="channel-name">${channel}</div>`
+      : "";
+
     let cardHtml = `
       <span class="status-badge">Now Watching</span>
       <div class="playlist-title" title="${title}">${title}</div>
+      ${channelHtml} 
       <div class="playlist-id">ID: ${currentId}</div>
       ${generateProgressHTML(completed, total)}
     `;
@@ -134,12 +140,7 @@ const updateUI = (currentId, currentData, playlists) => {
     if (isAlreadySaved) {
       cardHtml += `<div class="saved-indicator">Tracking in library</div>`;
       activeCard.innerHTML = cardHtml;
-
-      // Since we have fresh data, let's silently update the storage
-      // so the saved list is always accurate.
-      if (currentData) {
-        handleSave(currentId, currentData);
-      }
+      if (currentData) handleSave(currentId, currentData);
     } else {
       activeCard.innerHTML = cardHtml;
       const saveBtn = document.createElement("button");
@@ -157,7 +158,6 @@ const updateUI = (currentId, currentData, playlists) => {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
   } else {
-    // Sort by lastUpdated if available, or just reverse
     playlists
       .slice()
       .reverse()
@@ -165,14 +165,19 @@ const updateUI = (currentId, currentData, playlists) => {
         const card = document.createElement("div");
         card.className = "playlist-item";
 
-        // Fallback for old data that might not have stats yet
         const pTotal = playlist.totalVideos || 0;
         const pCompleted = playlist.completedVideos || 0;
+        const pChannel = playlist.channelName || "";
+
+        const savedChannelHtml = pChannel
+          ? `<div class="channel-name">${pChannel}</div>`
+          : "";
 
         card.innerHTML = `
         <div class="playlist-title" title="${playlist.playlistTitle}">
             ${playlist.playlistTitle}
         </div>
+        ${savedChannelHtml}
         ${generateProgressHTML(pCompleted, pTotal)}
       `;
         savedContainer.appendChild(card);
