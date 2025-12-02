@@ -1,9 +1,13 @@
 // popup.js
 import { getActiveTab } from "./modules/utils.js";
 import { scrapePlaylistData } from "./modules/scraper.js";
-import { getPlaylists, savePlaylist } from "./modules/storage.js";
+import {
+  getPlaylists,
+  savePlaylist,
+  markVideoAsWatched,
+  deletePlaylist,
+} from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
-import { markVideoAsWatched } from "./modules/storage.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 1. Get Environment Data
@@ -50,7 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       data,
       updatedList,
       handleSaveAction,
-      handleMarkAction
+      handleMarkAction,
+      handleDeleteAction
     );
   };
 
@@ -67,8 +72,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentData,
       updatedList,
       handleSaveAction,
-      handleMarkAction
+      handleMarkAction,
+      handleDeleteAction
     );
+  };
+
+  const handleDeleteAction = async (playlistId) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this playlist?"
+    );
+    if (confirmDelete) {
+      const updatedList = await deletePlaylist(playlistId);
+      // Re-render UI with the updated list
+      renderUI(
+        currentPlaylistId,
+        videoId,
+        currentData,
+        updatedList,
+        handleSaveAction,
+        handleMarkAction,
+        handleDeleteAction
+      );
+    }
   };
 
   // 4. Initial Load & Render
@@ -79,6 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentData,
     savedPlaylists,
     handleSaveAction,
-    handleMarkAction
+    handleMarkAction,
+    handleDeleteAction
   );
 });

@@ -48,7 +48,11 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
   // Create a copy of the completed array to avoid direct mutation issues
   const updatedCompletedVideos = [...currentPlaylist.completedVideos];
 
-  if (!updatedCompletedVideos.includes(videoId)) {
+  const isAlreadyWatched = updatedCompletedVideos.some((video) => {
+    return video.id === videoId;
+  });
+
+  if (!isAlreadyWatched) {
     updatedCompletedVideos.push({ id: videoId, title: videoTitle });
   }
   const newEntry = {
@@ -59,6 +63,19 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
 
   const updatedPlaylists = [...playlists];
   updatedPlaylists[playlistIndex] = newEntry;
+
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
+      resolve(updatedPlaylists);
+    });
+  });
+};
+
+export const deletePlaylist = async (playlistId) => {
+  const playlists = await getPlaylists();
+
+  // Filter out the playlist with the matching ID
+  const updatedPlaylists = playlists.filter((p) => p.playlistId !== playlistId);
 
   return new Promise((resolve) => {
     chrome.storage.local.set({ playlists: updatedPlaylists }, () => {

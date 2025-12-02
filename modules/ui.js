@@ -45,7 +45,8 @@ export const renderUI = (
   currentData,
   playlists,
   onSave,
-  onMark
+  onMark,
+  onDelete
 ) => {
   const currentContainer = document.getElementById("current-section");
   const savedContainer = document.getElementById("saved-list");
@@ -137,6 +138,10 @@ export const renderUI = (
 
           <div class="watched-list-container">
             ${generateVideoListHTML(playlist.completedVideos)}
+
+            <div class="card-footer">
+                <button class="delete-btn">Delete Playlist</button>
+            </div>
           </div>
         `;
 
@@ -144,6 +149,11 @@ export const renderUI = (
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
           card.classList.toggle("expanded");
+        });
+
+        const deleteBtn = card.querySelector(".delete-btn");
+        deleteBtn.addEventListener("click", (e) => {
+          onDelete(playlist.playlistId);
         });
 
         savedContainer.appendChild(card);
