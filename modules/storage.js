@@ -38,39 +38,30 @@ export const savePlaylist = async (playlistId, data) => {
 };
 
 export const markVideoAsWatched = async (playlistId, videoId) => {
-  console.log("starting as video as watched:", playlistId, videoId);
-
   const playlists = await getPlaylists();
   const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
 
   if (playlistIndex === -1) return;
 
-  let completedVideos = playlists[playlistIndex].completedVideos;
+  const currentPlaylist = playlists[playlistIndex];
 
-  if (!completedVideos.includes(videoId)) {
-    completedVideos.push(videoId);
+  // Create a copy of the completed array to avoid direct mutation issues
+  const updatedCompletedVideos = [...currentPlaylist.completedVideos];
+
+  if (!updatedCompletedVideos.includes(videoId)) {
+    updatedCompletedVideos.push(videoId);
   }
-
   const newEntry = {
-    playlistId: playlistId,
-    playlistTitle: playlists[playlistIndex].title,
-    channelName: playlists[playlistIndex].channelName,
-    totalVideos: playlists[playlistIndex].total,
-    completedVideos: completedVideos,
+    ...currentPlaylist,
+    completedVideos: updatedCompletedVideos,
     lastUpdated: new Date().toISOString(),
   };
 
-  console.log("new entry:", newEntry);
-
-  let updatedPlaylists;
-  updatedPlaylists = [...playlists];
+  const updatedPlaylists = [...playlists];
   updatedPlaylists[playlistIndex] = newEntry;
-
-  console.log("updated playlists:", updatedPlaylists);
 
   return new Promise((resolve) => {
     chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
-      console.log("storage updated");
       resolve(updatedPlaylists);
     });
   });
