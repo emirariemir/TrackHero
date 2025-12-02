@@ -37,7 +37,7 @@ export const savePlaylist = async (playlistId, data) => {
   });
 };
 
-export const markVideoAsWatched = async (playlistId, videoId) => {
+export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
   const playlists = await getPlaylists();
   const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
 
@@ -49,7 +49,7 @@ export const markVideoAsWatched = async (playlistId, videoId) => {
   const updatedCompletedVideos = [...currentPlaylist.completedVideos];
 
   if (!updatedCompletedVideos.includes(videoId)) {
-    updatedCompletedVideos.push(videoId);
+    updatedCompletedVideos.push({ id: videoId, title: videoTitle });
   }
   const newEntry = {
     ...currentPlaylist,

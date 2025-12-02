@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (injectionResults && injectionResults[0]) {
           currentData = injectionResults[0].result;
-          console.log("Scraped Data:", currentData);
         }
       } catch (e) {
         console.error("Script injection failed", e);
@@ -55,8 +54,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   };
 
-  const handleMarkAction = async (playlistId, videoId) => {
-    const updatedList = await markVideoAsWatched(playlistId, videoId);
+  const handleMarkAction = async (playlistId, videoId, videoTitle) => {
+    const updatedList = await markVideoAsWatched(
+      playlistId,
+      videoId,
+      videoTitle
+    );
     // Re-render with the new list
     renderUI(
       playlistId,

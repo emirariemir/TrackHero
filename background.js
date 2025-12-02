@@ -12,8 +12,6 @@ function parseYouTubeParams(urlStr) {
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    console.log("onUpdated:", { tabId, changeInfo, url: tab?.url });
-
     if (!tab.url) return;
 
     const info = parseYouTubeParams(tab.url);
@@ -23,7 +21,6 @@ chrome.runtime.onInstalled.addListener(() => {
 
     chrome.tabs
       .sendMessage(tabId, { type: "NEW", ...info })
-      .then(() => console.log("Sent to content script:", info))
       .catch((err) => console.warn("Content script not ready:", err));
   });
 });

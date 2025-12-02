@@ -11,6 +11,14 @@ export const scrapePlaylistData = (playlistId) => {
   const channelEl = document.querySelector(channelSelector);
   const channelName = channelEl ? channelEl.textContent.trim() : "";
 
+  const videoTitleSelector = "ytd-watch-metadata #title h1 yt-formatted-string";
+
+  const videoTitleEl = document.querySelector(videoTitleSelector);
+
+  const videoTitle = videoTitleEl
+    ? videoTitleEl.textContent.trim()
+    : "Unknown Title";
+
   // C. Get Total Video Count
   let totalVideos = 0;
   const indexElement = document.querySelector(
@@ -27,6 +35,7 @@ export const scrapePlaylistData = (playlistId) => {
   return {
     title,
     channelName,
+    currentVideoTitle: videoTitle,
     total: totalVideos,
   };
 };

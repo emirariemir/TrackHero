@@ -111,8 +111,6 @@ h3 {
   border-left: 3px solid var(--accent-color);
 }
 
-/* ... existing styles ... */
-
 /* Action Button Styles */
 .action-btn {
   background-color: var(--accent-color);
@@ -185,4 +183,64 @@ h3 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* --- ACCORDION & WATCHED LIST STYLES (NO ANIMATION) --- */
+
+.card-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.chevron-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.playlist-item.expanded .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.watched-list-container {
+  display: none;
+}
+
+.playlist-item.expanded .watched-list-container {
+  display: block;
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #333;
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+.watched-video-item {
+  display: flex;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.watched-video-item:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  color: var(--accent-color);
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.video-item-title {
+  line-height: 1.4;
 }
