@@ -1,13 +1,14 @@
 /* styles.css */
 
 :root {
-  --bg-color: #0f0f0f;
-  --card-bg: #1e1e1e;
-  --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --accent-color: #6366f1; /* Indigo */
+  --bg-color: #1677f2;
+  --card-bg: #f9c400;
+  --text-primary: #000000;
+  --text-secondary: #272727;
+  --accent-color: #fc49ff;
   --accent-hover: #4f46e5;
-  --danger-color: #ef4444;
+  --danger-color: #ff2e1c;
+  --danger-color-hover: rgb(255, 70, 61);
 }
 
 body {
@@ -31,13 +32,13 @@ h3 {
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-color);
 }
 ::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--accent-color);
   border-radius: 4px;
 }
 
@@ -61,12 +62,12 @@ h3 {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background-color: var(--accent-color);
+  background-color: var(--danger-color);
+  border: 1px solid var(--text-primary);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 3px 6px;
+  border-radius: 8px;
   margin-bottom: 8px;
-  display: inline-block;
 }
 
 /* --- PLAYLIST CARD STYLES --- */
@@ -75,24 +76,17 @@ h3 {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 10px;
-  border: 1px solid transparent;
+  border: 1px solid var(--text-primary);
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.playlist-item:hover {
-  border-color: #444;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
 .playlist-title {
   font-weight: 600;
   font-size: 14px;
   color: var(--text-primary);
-  /* Truncate long text with ... */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,27 +101,27 @@ h3 {
 
 /* Special style for the 'Active' card to make it pop */
 .playlist-item.active-card {
-  background: linear-gradient(145deg, #252525, #1e1e1e);
-  border-left: 3px solid var(--accent-color);
+  background: #78e716;
 }
 
 /* Action Button Styles */
 .action-btn {
   background-color: var(--accent-color);
-  color: white;
-  border: none;
+  color: var(--text-primary);
+  border: 1px solid var(--text-primary);
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  width: 100%; /* Full width button looks good on cards */
+  width: 100%;
   margin-top: 8px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .action-btn:active {
@@ -158,7 +152,7 @@ h3 {
   width: 100%;
   height: 6px;
   background-color: #333;
-  border-radius: 3px;
+  border-radius: 8px;
   overflow: hidden;
   margin-top: 4px;
 }
@@ -166,7 +160,7 @@ h3 {
 .progress-fill {
   height: 100%;
   background-color: var(--accent-color);
-  border-radius: 3px;
+  border-radius: 8px;
   transition: width 0.5s ease-in-out;
 }
 
@@ -195,6 +189,14 @@ h3 {
   gap: 8px;
 }
 
+.saved-list-title {
+  font-size: 16px;
+  letter-spacing: -0.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
 .chevron-icon {
   width: 16px;
   height: 16px;
@@ -215,30 +217,34 @@ h3 {
   display: block;
   max-height: 300px;
   overflow-y: auto;
-  border-top: 1px solid #333;
   margin-top: 12px;
-  padding-top: 8px;
 }
 
 .watched-video-item {
   display: flex;
   gap: 8px;
-  padding: 6px 4px;
+  align-items: center;
+  padding: 10px 8px;
   font-size: 11px;
   color: var(--text-secondary);
-  border-bottom: 1px solid #2a2a2a;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  margin-bottom: 6px;
 }
 
 .watched-video-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .check-icon {
-  color: var(--accent-color);
-  width: 12px;
-  height: 12px;
+  color: var(--text-primary);
+  background-color: #4ade80;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  margin-top: 1px;
+  padding: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--text-primary);
 }
 
 .video-item-title {
@@ -255,20 +261,19 @@ h3 {
 }
 
 .delete-btn {
-  width: 100%; /* <-- ADD THIS LINE */
-  background-color: transparent;
-  color: var(--danger-color);
-  border: 1px solid var(--danger-color);
-  padding: 8px 10px; /* Increased top/bottom padding slightly for a better "block" feel */
-  border-radius: 4px;
+  width: 100%;
+  background-color: var(--danger-color);
+  border: 1px solid var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 500;
-  text-align: center; /* Ensure text is centered */
+  text-align: center;
   transition: all 0.2s ease;
 }
 
 .delete-btn:hover {
-  background-color: var(--danger-color);
-  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
