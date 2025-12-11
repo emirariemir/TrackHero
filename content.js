@@ -10,26 +10,52 @@ function waitForElements(selector, callback) {
   obs.observe(document.documentElement, { childList: true, subtree: true });
 }
 
+function getUrlForItem(item) {
+  const link =
+    item.querySelector("a#wc-endpoint") || item.querySelector("a#thumbnail");
+
+  if (!link) return null;
+
+  const href = link.getAttribute("href");
+
+  const url = new URL(href, "https://www.youtube.com");
+  return url;
+}
+
 function addTestButton(item) {
   if (item.dataset.trackheroInjected === "true") return;
 
   item.dataset.trackheroInjected = "true";
 
   const btn = document.createElement("button");
-  btn.textContent = "⭐ Test";
-  btn.style.marginLeft = "8px";
-  btn.style.cursor = "pointer";
-  btn.style.padding = "4px 6px";
-  btn.style.borderRadius = "6px";
-  btn.style.background = "#ffd54f";
+  btn.textContent = "+";
+  btn.style.width = "28px";
+  btn.style.height = "28px";
+  btn.style.borderRadius = "50%";
+  btn.style.display = "flex";
+  btn.style.alignItems = "center";
+  btn.style.justifyContent = "center";
+  btn.style.background = "#e5e5e5";
   btn.style.border = "none";
-  btn.style.fontSize = "12px";
+  btn.style.color = "#555";
+  btn.style.fontSize = "18px";
+  btn.style.fontWeight = "700";
+  btn.style.cursor = "pointer";
+  btn.style.marginLeft = "8px";
+  btn.style.transition = "background 0.2s";
+  btn.onmouseenter = () => (btn.style.background = "#8fffb6ff");
+  btn.onmouseleave = () => (btn.style.background = "#e5e5e5");
 
-  item.insertAdjacentElement("beforeend", btn);
+  const urlForThatVideo = getUrlForItem(item);
 
   btn.addEventListener("click", () => {
-    console.log("TrackHero button clicked for:", item);
+    chrome.runtime.sendMessage({
+      type: "MARK_ITEM_COMPLETE",
+      url: urlForThatVideo,
+    });
   });
+
+  item.insertAdjacentElement("beforeend", btn);
 }
 
-waitForElements("#index-container", addTestButton);
+waitForElements("#playlist-items", addTestButton);

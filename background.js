@@ -1,3 +1,5 @@
+import { markVideoAsWatched } from "./modules/storage.js";
+
 function parseYouTubeParams(urlStr) {
   try {
     const url = new URL(urlStr);
@@ -23,4 +25,15 @@ chrome.runtime.onInstalled.addListener(() => {
       .sendMessage(tabId, { type: "NEW", ...info })
       .catch((err) => console.warn("Content script not ready:", err));
   });
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "MARK_ITEM_COMPLETE" && request.url) {
+    const info = parseYouTubeParams(request.url);
+    if (info && info.hasPlaylist && info.videoId) {
+      markVideoAsWatched(info.playlistId, info.videoId, "").catch((err) =>
+        console.error("Failed to mark video as watched:", err)
+      );
+    }
+  }
 });
