@@ -77,6 +77,21 @@ function buildCompletedMap(playlists) {
 }
 
 /*
+ * getTitleForItem(item)
+ * ----------------------
+ * Extracts the video title from the DOM.
+ * Preferred source is the 'title' attribute of the #video-title element,
+ * as it contains the full string without truncation or extra whitespace.
+ */
+function getTitleForItem(item) {
+  const titleEl = item.querySelector("#video-title");
+
+  if (!titleEl) return "Unknown Title";
+
+  return titleEl.getAttribute("title") || titleEl.textContent.trim();
+}
+
+/*
  * addCompletionButton(item, completedMap)
  * ----------------------------------------
  * Injects a completion button next to a playlist item if not already injected.
@@ -111,6 +126,8 @@ function addCompletionButton(item, completedMap) {
     return;
   }
 
+  const videoTitle = getTitleForItem(item);
+
   const isCompleted = completedMap.has(videoId);
 
   const btn = document.createElement("custom-trackhero-button");
@@ -121,6 +138,7 @@ function addCompletionButton(item, completedMap) {
       const response = await chrome.runtime.sendMessage({
         type: "MARK_ITEM_COMPLETE",
         url: urlForThatVideo,
+        title: videoTitle,
       });
 
       if (!response || response.success !== true) {

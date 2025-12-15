@@ -28,11 +28,11 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "MARK_ITEM_COMPLETE" && request.url) {
+  if (request.type === "MARK_ITEM_COMPLETE" && request.url && request.title) {
     const info = parseYouTubeParams(request.url);
     if (info && info.hasPlaylist && info.videoId) {
-      markVideoAsWatched(info.playlistId, info.videoId, "").catch((err) =>
-        console.error("Failed to mark video as watched:", err)
+      markVideoAsWatched(info.playlistId, info.videoId, request.title).catch(
+        (err) => console.error("Failed to mark video as watched:", err)
       );
     }
   }
