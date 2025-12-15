@@ -5,6 +5,15 @@ import {
   removeVideoFromWatched,
 } from "./modules/storage.js";
 
+/*
+ * parseYouTubeParams(urlStr)
+ * ---------------------------
+ * Utility function to extract 'videoId' and 'playlistId' from a raw URL string.
+ *
+ * Checks if the URL belongs to "youtube.com/watch".
+ * Returns an object containing the IDs and a boolean 'hasPlaylist' flag.
+ * Returns null if the URL is invalid or not a YouTube watch page.
+ */
 function parseYouTubeParams(urlStr) {
   try {
     const url = new URL(urlStr);
@@ -17,6 +26,20 @@ function parseYouTubeParams(urlStr) {
   return null;
 }
 
+/*
+ * Navigation & Tab Update Listener
+ * --------------------------------
+ * Detects when the user navigates within YouTube.
+ *
+ * Since YouTube is a Single Page Application (SPA), the page doesn't always
+ * reload when switching videos. We listen for 'onUpdated' events to catch
+ * URL changes.
+ *
+ * Logic:
+ * 1. Checks if the new URL is a valid YouTube video with a playlist.
+ * 2. Waits for the page status to be 'complete' to ensure the DOM is ready.
+ * 3. Sends a "NEW" message to the content script to trigger a re-scan of the page.
+ */
 chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (!tab.url) return;
@@ -32,6 +55,19 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+/*
+ * Message Listener
+ * ----------------
+ * Handles asynchronous requests sent from the content script.
+ *
+ * Supports two main operations:
+ * 1. MARK_ITEM_COMPLETE: Saves the video to the completed list in storage.
+ * 2. REMOVE_ITEM_FROM_WATCHED: Removes the video from the completed list.
+ *
+ * Return value:
+ * Returns 'true' to keep the message channel open, allowing for
+ * asynchronous responses (sendResponse) after the storage operations finish.
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const info = request.url ? parseYouTubeParams(request.url) : null;
 
