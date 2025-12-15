@@ -71,6 +71,37 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
   });
 };
 
+export const removeVideoFromWatched = async (playlistId, videoId) => {
+  const playlists = await getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
+
+  // If the playlist doesn't exist, return the current state without changes
+  if (playlistIndex === -1) return playlists;
+
+  const currentPlaylist = playlists[playlistIndex];
+
+  // Filter out the video that matches the given videoId
+  // This creates a new array, preserving immutability
+  const updatedCompletedVideos = currentPlaylist.completedVideos.filter(
+    (video) => video.id !== videoId
+  );
+
+  const newEntry = {
+    ...currentPlaylist,
+    completedVideos: updatedCompletedVideos,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  const updatedPlaylists = [...playlists];
+  updatedPlaylists[playlistIndex] = newEntry;
+
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
+      resolve(updatedPlaylists);
+    });
+  });
+};
+
 export const deletePlaylist = async (playlistId) => {
   const playlists = await getPlaylists();
 
