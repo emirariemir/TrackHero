@@ -94,14 +94,15 @@ function getTitleForItem(item) {
 /*
  * addCompletionButton(item, completedMap)
  * ----------------------------------------
- * Injects a completion button next to a playlist item if not already injected.
- * - Determines the video's URL and ID.
- * - Checks whether the video is completed using completedMap.
- * - Adds a "+" or "✓" button depending on completion state.
+ * Injects a toggle button next to a playlist item if not already injected.
+ * - Extracts the video's URL, ID, and Title from the DOM.
+ * - Checks the initial completion state using completedMap to style the button ("+" or "✓").
  *
  * Button click:
- * Sends a message to the background script requesting to mark the item complete.
- * If the background script confirms success, the button updates visually.
+ * 1. Checks the *current* state of the video in the global map.
+ * 2. If currently completed -> sends "REMOVE_ITEM_FROM_WATCHED".
+ * 3. If currently incomplete -> sends "MARK_ITEM_COMPLETE" with the video title.
+ * 4. Updates the button's visual state upon success from the background script.
  *
  * Includes full error handling for missing URLs, invalid IDs,
  * and sendMessage failures.
@@ -128,31 +129,33 @@ function addCompletionButton(item, completedMap) {
 
   const videoTitle = getTitleForItem(item);
 
-  const isCompleted = completedMap.has(videoId);
+  const isInitiallyCompleted = completedMap.has(videoId);
 
   const btn = document.createElement("custom-trackhero-button");
-  styleButton(btn, isCompleted);
+  styleButton(btn, isInitiallyCompleted);
 
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", async (e) => {
+    const isCurrentlyCompleted = currentCompletedMap.has(videoId);
+
+    const messageType = isCurrentlyCompleted
+      ? "REMOVE_ITEM_FROM_WATCHED"
+      : "MARK_ITEM_COMPLETE";
+
     try {
       const response = await chrome.runtime.sendMessage({
-        type: "MARK_ITEM_COMPLETE",
-        url: urlForThatVideo,
+        type: messageType,
+        url: urlForThatVideo.href,
         title: videoTitle,
       });
 
       if (!response || response.success !== true) {
-        console.error(
-          "addCompletionButton: Background script returned failure for videoId:",
-          videoId,
-          response
-        );
+        console.error(`Background script failed for ${messageType}:`, response);
         return;
       }
 
-      styleButton(btn, true);
+      styleButton(btn, !isCurrentlyCompleted);
     } catch (err) {
-      console.error("addCompletionButton: sendMessage failed:", err);
+      console.error("sendMessage failed:", err);
     }
   });
 

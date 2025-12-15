@@ -1,4 +1,9 @@
-import { markVideoAsWatched } from "./modules/storage.js";
+// background.js
+
+import {
+  markVideoAsWatched,
+  removeVideoFromWatched,
+} from "./modules/storage.js";
 
 function parseYouTubeParams(urlStr) {
   try {
@@ -28,12 +33,31 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "MARK_ITEM_COMPLETE" && request.url && request.title) {
-    const info = parseYouTubeParams(request.url);
-    if (info && info.hasPlaylist && info.videoId) {
-      markVideoAsWatched(info.playlistId, info.videoId, request.title).catch(
-        (err) => console.error("Failed to mark video as watched:", err)
-      );
-    }
+  const info = request.url ? parseYouTubeParams(request.url) : null;
+
+  if (!info || !info.hasPlaylist || !info.videoId) {
+    return false;
+  }
+
+  // Handle ADD
+  if (request.type === "MARK_ITEM_COMPLETE" && request.title) {
+    markVideoAsWatched(info.playlistId, info.videoId, request.title)
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => {
+        console.error("Mark watched failed", err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true;
+  }
+
+  // Handle REMOVE
+  if (request.type === "REMOVE_ITEM_FROM_WATCHED") {
+    removeVideoFromWatched(info.playlistId, info.videoId)
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => {
+        console.error("Remove watched failed", err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true;
   }
 });
