@@ -60,7 +60,7 @@ export const renderUI = (
   // --- Render Current Section ---
   if (!currentId) {
     currentContainer.innerHTML =
-      '<div class="empty-state">No active playlist found</div>';
+      '<div class="empty-state-playlist">No active playlist found</div>';
   } else {
     const title = currentData?.title || "Loading...";
     const channel = currentData?.channelName || "";

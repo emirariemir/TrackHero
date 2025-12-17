@@ -39,18 +39,20 @@ h3 {
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-color);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
-  border-radius: 4px;
+  width: 0px;
 }
 
 .empty-state {
-  color: var(--text-primary);
+  color: #3e3e3e;
+  opacity: 0.5;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+  font-size: 13px;
+}
+
+.empty-state-playlist {
+  color: #bdbdbd;
   opacity: 0.5;
   font-style: italic;
   text-align: center;
@@ -102,8 +104,8 @@ h3 {
 
 .playlist-item.active-card {
   background: linear-gradient(135deg, #9b41ed 0%, #6096db 50%, #5ed7a8 100%);
-  border-radius: 14px;
-  padding: 8px;
+  border-radius: 12px;
+  padding: 7px;
   border: none;
 }
 
@@ -225,13 +227,13 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
 }
 
 .saved-list {
   background: #e2e2e2;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 8px;
+  padding-bottom: 2px;
   border: none;
 }
 
