@@ -64,9 +64,11 @@ export const renderUI = (
   } else {
     const title = currentData?.title || "Loading...";
     const channel = currentData?.channelName || "";
-    const currentVideoTitle = currentData?.currentVideoTitle || "";
     const total = currentData?.total || 0;
     const completed = playlists[playlistIndex]?.completedVideos.length || 0;
+
+    const totalMinutes = total * 10;
+    const totalHours = Math.round(totalMinutes / 60);
 
     const activeCard = document.createElement("div");
     activeCard.className = "playlist-item active-card";
@@ -76,29 +78,39 @@ export const renderUI = (
       : "";
 
     let cardHtml = `
-      <span class="status-badge">Now Watching</span>
-      <div class="playlist-title" title="${title}">${title}</div>
-      <div class="current-video-title" title="${currentVideoTitle}">${currentVideoTitle}</div>
-      ${channelHtml}
-      <div class="playlist-id">ID: ${currentId}</div>
-      ${generateProgressHTML(completed, total)}
+      <div class="active-card-title">I've detected a Playlist!</div>
+      <div class="active-card-inner">
+        <div class="playlist-title">${title}</div>
+        ${channelHtml}
     `;
 
     if (isAlreadySaved) {
-      activeCard.innerHTML = cardHtml;
-      const markButton = document.createElement("button");
-      markButton.className = "action-btn";
-      markButton.textContent = "Mark Video as Watched";
-      markButton.onclick = () => onMark(currentId, videoId, currentVideoTitle);
-      activeCard.appendChild(markButton);
+      const videosLeft = total - completed;
+      cardHtml += `
+        <div class="videos-left">You have ${videosLeft} videos left to cover!</div>
+        ${generateProgressHTML(completed, total)}
+      `;
     } else {
+      cardHtml += `
+        <div class="video-count">Total of ${total} videos (${totalHours} hours)</div>
+      `;
+
       activeCard.innerHTML = cardHtml;
+
       const saveBtn = document.createElement("button");
       saveBtn.className = "action-btn";
-      saveBtn.textContent = "Track this Playlist";
+
+      saveBtn.textContent = "Track Playlist";
       saveBtn.onclick = () => onSave(currentId, currentData);
-      activeCard.appendChild(saveBtn);
+
+      const innerCard = activeCard.querySelector(".active-card-inner");
+      innerCard.appendChild(saveBtn);
     }
+
+    cardHtml += `</div>`;
+
+    activeCard.innerHTML = cardHtml;
+
     currentContainer.appendChild(activeCard);
   }
 
