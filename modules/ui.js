@@ -94,12 +94,15 @@ export const renderUI = (
       cardHtml += `
         <div class="video-count">Total of ${total} videos (${totalHours} hours)</div>
       `;
+    }
 
-      activeCard.innerHTML = cardHtml;
+    cardHtml += `</div>`;
 
+    activeCard.innerHTML = cardHtml;
+
+    if (!isAlreadySaved) {
       const saveBtn = document.createElement("button");
       saveBtn.className = "action-btn";
-
       saveBtn.textContent = "Track Playlist";
       saveBtn.onclick = () => onSave(currentId, currentData);
 
@@ -107,24 +110,21 @@ export const renderUI = (
       innerCard.appendChild(saveBtn);
     }
 
-    cardHtml += `</div>`;
-
-    activeCard.innerHTML = cardHtml;
-
     currentContainer.appendChild(activeCard);
   }
 
-  // --- Render Saved List ---
   if (playlists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
   } else {
+    savedContainer.innerHTML = `<div class="saved-list-title">Currently Tracking (${playlists.length})</div>`;
+
     playlists
       .slice()
       .reverse()
       .forEach((playlist) => {
         const card = document.createElement("div");
-        card.className = "playlist-item"; // toggle 'expanded' class
+        card.className = "playlist-item";
 
         const pChannel = playlist.channelName
           ? `<div class="channel-name">${playlist.channelName}</div>`
@@ -157,7 +157,6 @@ export const renderUI = (
           </div>
         `;
 
-        // target the 'card-header' specifically so clicking the header toggles it
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
           card.classList.toggle("expanded");

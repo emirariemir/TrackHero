@@ -228,12 +228,18 @@ h3 {
   gap: 8px;
 }
 
+.saved-list {
+  background: #e2e2e2;
+  border-radius: 14px;
+  padding: 8px;
+  border: none;
+}
+
 .saved-list-title {
-  font-size: 16px;
-  letter-spacing: -0.5px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+  color: #3e3e3e;
+  margin-bottom: 8px;
 }
 
 .chevron-icon {
