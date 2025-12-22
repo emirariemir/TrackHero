@@ -60,13 +60,15 @@ export const renderUI = (
   // --- Render Current Section ---
   if (!currentId) {
     currentContainer.innerHTML =
-      '<div class="empty-state">No active playlist found</div>';
+      '<div class="empty-state-playlist">No active playlist found</div>';
   } else {
     const title = currentData?.title || "Loading...";
     const channel = currentData?.channelName || "";
-    const currentVideoTitle = currentData?.currentVideoTitle || "";
     const total = currentData?.total || 0;
     const completed = playlists[playlistIndex]?.completedVideos.length || 0;
+
+    const totalMinutes = total * 10;
+    const totalHours = Math.round(totalMinutes / 60);
 
     const activeCard = document.createElement("div");
     activeCard.className = "playlist-item active-card";
@@ -76,43 +78,53 @@ export const renderUI = (
       : "";
 
     let cardHtml = `
-      <span class="status-badge">Now Watching</span>
-      <div class="playlist-title" title="${title}">${title}</div>
-      <div class="current-video-title" title="${currentVideoTitle}">${currentVideoTitle}</div>
-      ${channelHtml}
-      <div class="playlist-id">ID: ${currentId}</div>
-      ${generateProgressHTML(completed, total)}
+      <div class="active-card-title">I've detected a Playlist!</div>
+      <div class="active-card-inner">
+        <div class="playlist-title">${title}</div>
+        ${channelHtml}
     `;
 
     if (isAlreadySaved) {
-      activeCard.innerHTML = cardHtml;
-      const markButton = document.createElement("button");
-      markButton.className = "action-btn";
-      markButton.textContent = "Mark Video as Watched";
-      markButton.onclick = () => onMark(currentId, videoId, currentVideoTitle);
-      activeCard.appendChild(markButton);
+      const videosLeft = total - completed;
+      cardHtml += `
+        <div class="videos-left">You have ${videosLeft} videos left to cover!</div>
+        ${generateProgressHTML(completed, total)}
+      `;
     } else {
-      activeCard.innerHTML = cardHtml;
+      cardHtml += `
+        <div class="video-count">Total of ${total} videos (${totalHours} hours)</div>
+      `;
+    }
+
+    cardHtml += `</div>`;
+
+    activeCard.innerHTML = cardHtml;
+
+    if (!isAlreadySaved) {
       const saveBtn = document.createElement("button");
       saveBtn.className = "action-btn";
-      saveBtn.textContent = "Track this Playlist";
+      saveBtn.textContent = "Track Playlist";
       saveBtn.onclick = () => onSave(currentId, currentData);
-      activeCard.appendChild(saveBtn);
+
+      const innerCard = activeCard.querySelector(".active-card-inner");
+      innerCard.appendChild(saveBtn);
     }
+
     currentContainer.appendChild(activeCard);
   }
 
-  // --- Render Saved List ---
   if (playlists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
   } else {
+    savedContainer.innerHTML = `<div class="saved-list-title">Currently Tracking (${playlists.length})</div>`;
+
     playlists
       .slice()
       .reverse()
       .forEach((playlist) => {
         const card = document.createElement("div");
-        card.className = "playlist-item"; // toggle 'expanded' class
+        card.className = "playlist-item";
 
         const pChannel = playlist.channelName
           ? `<div class="channel-name">${playlist.channelName}</div>`
@@ -145,7 +157,6 @@ export const renderUI = (
           </div>
         `;
 
-        // target the 'card-header' specifically so clicking the header toggles it
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
           card.classList.toggle("expanded");
