@@ -4,7 +4,6 @@ import { scrapePlaylistData } from "./modules/scraper.js";
 import {
   getPlaylists,
   savePlaylist,
-  markVideoAsWatched,
   deletePlaylist,
 } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
