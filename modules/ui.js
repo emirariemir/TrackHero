@@ -41,11 +41,9 @@ const generateVideoListHTML = (videos) => {
 
 export const renderUI = (
   currentId,
-  videoId,
   currentData,
   playlists,
   onSave,
-  onMark,
   onDelete
 ) => {
   const currentContainer = document.getElementById("current-section");

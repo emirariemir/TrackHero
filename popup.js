@@ -48,33 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSaveAction = async (id, data) => {
     const updatedList = await savePlaylist(id, data);
     // Re-render with the new list
-    renderUI(
-      id,
-      videoId,
-      data,
-      updatedList,
-      handleSaveAction,
-      handleMarkAction,
-      handleDeleteAction
-    );
-  };
-
-  const handleMarkAction = async (playlistId, videoId, videoTitle) => {
-    const updatedList = await markVideoAsWatched(
-      playlistId,
-      videoId,
-      videoTitle
-    );
-    // Re-render with the new list
-    renderUI(
-      playlistId,
-      videoId,
-      currentData,
-      updatedList,
-      handleSaveAction,
-      handleMarkAction,
-      handleDeleteAction
-    );
+    renderUI(id, data, updatedList, handleSaveAction, handleDeleteAction);
   };
 
   const handleDeleteAction = async (playlistId) => {
@@ -86,11 +60,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Re-render UI with the updated list
       renderUI(
         currentPlaylistId,
-        videoId,
         currentData,
         updatedList,
         handleSaveAction,
-        handleMarkAction,
         handleDeleteAction
       );
     }
@@ -100,11 +72,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const savedPlaylists = await getPlaylists();
   renderUI(
     currentPlaylistId,
-    videoId,
     currentData,
     savedPlaylists,
     handleSaveAction,
-    handleMarkAction,
     handleDeleteAction
   );
 });
