@@ -69,6 +69,7 @@ export const renderUI = (
   currentData,
   playlists,
   onSave,
+  onReset,
   onDelete
 ) => {
   const currentContainer = document.getElementById("current-section");
@@ -179,6 +180,7 @@ export const renderUI = (
             )}
 
             <div class="card-footer">
+                <button class="reset-btn">Reset Playlist</button>
                 <button class="delete-btn">Delete Playlist</button>
             </div>
           </div>
@@ -189,8 +191,15 @@ export const renderUI = (
           card.classList.toggle("expanded");
         });
 
+        const resetBtn = card.querySelector(".reset-btn");
+        resetBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onReset(playlist.playlistId);
+        });
+
         const deleteBtn = card.querySelector(".delete-btn");
         deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
           onDelete(playlist.playlistId);
         });
 

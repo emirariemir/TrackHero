@@ -37,6 +37,31 @@ export const savePlaylist = async (playlistId, data) => {
   });
 };
 
+export const resetPlaylistProgress = async (playlistId) => {
+  const playlists = await getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
+
+  if (playlistIndex === -1) return playlists;
+
+  const updatedPlaylists = playlists.map((playlist, index) =>
+    index === playlistIndex
+      ? {
+          ...playlist,
+          completedVideos: [],
+          lastWatched: null,
+          upcomingVideo: null,
+          lastUpdated: new Date().toISOString(),
+        }
+      : playlist
+  );
+
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
+      resolve(updatedPlaylists);
+    });
+  });
+};
+
 /**
  * deletePlaylist async(playlistId)
  * Deletes a playlist from storage using its playlist ID.

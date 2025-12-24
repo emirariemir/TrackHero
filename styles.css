@@ -293,19 +293,41 @@ h3 {
 }
 
 .card-footer {
-  margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px dashed #333;
   display: flex;
   width: 100%;
 }
 
+.reset-btn {
+  width: 100%;
+  background-color: #202020;
+  color: #ffffff;
+  padding: 12px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-right: 8px;
+  transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+  transform: translateY(-1px);
+}
+
+.reset-btn:active {
+  transform: scale(0.98);
+}
+
 .delete-btn {
   width: 100%;
-  background-color: var(--danger-color);
-  border: 1px solid var(--text-primary);
-  padding: 8px 10px;
+  background-color: #d62424;
+  color: #ffffff;
+  padding: 12px 10px;
   border-radius: 8px;
+  border: none;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -315,7 +337,6 @@ h3 {
 
 .delete-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .delete-btn:active {

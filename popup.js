@@ -4,6 +4,7 @@ import { scrapePlaylistData } from "./modules/scraper.js";
 import {
   getPlaylists,
   savePlaylist,
+  resetPlaylistProgress,
   deletePlaylist,
 } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
@@ -47,7 +48,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   const handleSaveAction = async (id, data) => {
     const updatedList = await savePlaylist(id, data);
     // Re-render with the new list
-    renderUI(id, data, updatedList, handleSaveAction, handleDeleteAction);
+    renderUI(
+      id,
+      data,
+      updatedList,
+      handleSaveAction,
+      handleResetPlaylistAction,
+      handleDeleteAction
+    );
+  };
+
+  const handleResetPlaylistAction = async (playlistId) => {
+    const confirmReset = confirm(
+      "Are you sure you want to reset progress for this playlist?"
+    );
+    if (confirmReset) {
+      const updatedList = await resetPlaylistProgress(playlistId);
+
+      renderUI(
+        currentPlaylistId,
+        currentData,
+        updatedList,
+        handleSaveAction,
+        handleResetPlaylistAction,
+        handleDeleteAction
+      );
+    }
   };
 
   const handleDeleteAction = async (playlistId) => {
@@ -62,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentData,
         updatedList,
         handleSaveAction,
+        handleResetPlaylistAction,
         handleDeleteAction
       );
     }
@@ -74,6 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentData,
     savedPlaylists,
     handleSaveAction,
+    handleResetPlaylistAction,
     handleDeleteAction
   );
 });
