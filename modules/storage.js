@@ -10,15 +10,9 @@ export const getPlaylists = () => {
 
 /**
  * savePlaylist async(playlistId, data)
- * Saves a new playlist entry into local storage.
+ * Saves a new playlist entry into local storage with initial tracking data.
  *
- * The function first loads existing playlists, then constructs
- * a normalized playlist object using the provided metadata.
- * It initializes the playlist with zero completed videos and
- * timestamps the creation/update time.
- *
- * Finally, it appends the new playlist to the existing list
- * and persists everything back into Chrome storage.
+ * Now includes lastWatched and upcomingVideo fields (both null initially).
  */
 export const savePlaylist = async (playlistId, data) => {
   const playlists = await getPlaylists();
@@ -29,6 +23,8 @@ export const savePlaylist = async (playlistId, data) => {
     channelName: data.channelName,
     totalVideos: data.total,
     completedVideos: [],
+    lastWatched: null, // { title, url }
+    upcomingVideo: null, // { title, url }
     lastUpdated: new Date().toISOString(),
   };
 
@@ -44,12 +40,6 @@ export const savePlaylist = async (playlistId, data) => {
 /**
  * deletePlaylist async(playlistId)
  * Deletes a playlist from storage using its playlist ID.
- *
- * The function loads all playlists, removes the one that matches
- * the given ID, and then saves the updated list back to storage.
- *
- * The resolved value is the updated playlist array, which makes
- * it easy for the UI or state layer to stay in sync.
  */
 export const deletePlaylist = async (playlistId) => {
   const playlists = await getPlaylists();
@@ -64,18 +54,21 @@ export const deletePlaylist = async (playlistId) => {
 };
 
 /**
- * markVideoAsWatched async(playlistId, videoId, videoTitle)
- * Marks a video as watched inside a specific playlist.
+ * markVideoAsWatched async(playlistId, videoId, videoTitle, trackingData)
+ * Marks a video as watched and updates tracking information.
  *
- * The function locates the target playlist by ID and ensures
- * the same video is not added twice. If the playlist cannot
- * be found or the video already exists, it exits early.
- *
- * When a new video is added, the playlist's `lastUpdated`
- * timestamp is refreshed and the updated playlists are
- * persisted back into local storage.
+ * trackingData contains:
+ * - lastWatchedUrl: URL of the video just marked as watched
+ * - lastWatchedTitle: Title of the video just marked as watched
+ * - upcomingVideoUrl: URL of the next unwatched video (can be null)
+ * - upcomingVideoTitle: Title of the next unwatched video (can be null)
  */
-export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
+export const markVideoAsWatched = async (
+  playlistId,
+  videoId,
+  videoTitle,
+  trackingData = {}
+) => {
   const playlists = await getPlaylists();
   const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
 
@@ -83,6 +76,7 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
 
   const currentPlaylist = playlists[playlistIndex];
 
+  // Don't add duplicate videos
   if (currentPlaylist.completedVideos.some((v) => v.id === videoId)) {
     return playlists;
   }
@@ -95,6 +89,16 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
             ...playlist.completedVideos,
             { id: videoId, title: videoTitle },
           ],
+          lastWatched: {
+            title: trackingData.lastWatchedTitle || videoTitle,
+            url: trackingData.lastWatchedUrl || null,
+          },
+          upcomingVideo: trackingData.upcomingVideoUrl
+            ? {
+                title: trackingData.upcomingVideoTitle,
+                url: trackingData.upcomingVideoUrl,
+              }
+            : null,
           lastUpdated: new Date().toISOString(),
         }
       : playlist
@@ -111,18 +115,21 @@ export const markVideoAsWatched = async (playlistId, videoId, videoTitle) => {
  * removeVideoFromWatched async(playlistId, videoId)
  * Removes a previously watched video from a playlist.
  *
- * This function is essentially the inverse of marking a video
- * as watched. It finds the correct playlist and filters out
- * the target video from the completed list.
- *
- * After the update, the playlist timestamp is refreshed and
- * the new state is saved back into Chrome storage.
+ * Also clears lastWatched if the removed video was the last watched one.
  */
 export const removeVideoFromWatched = async (playlistId, videoId) => {
   const playlists = await getPlaylists();
   const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
 
   if (playlistIndex === -1) return playlists;
+
+  const currentPlaylist = playlists[playlistIndex];
+
+  // Check if we're removing the last watched video
+  const removingLastWatched =
+    currentPlaylist.lastWatched &&
+    currentPlaylist.lastWatched.url &&
+    currentPlaylist.lastWatched.url.includes(`v=${videoId}`);
 
   const updatedPlaylists = playlists.map((playlist, index) =>
     index === playlistIndex
@@ -131,6 +138,9 @@ export const removeVideoFromWatched = async (playlistId, videoId) => {
           completedVideos: playlist.completedVideos.filter(
             (v) => v.id !== videoId
           ),
+          // Clear lastWatched if we're removing that video
+          lastWatched: removingLastWatched ? null : playlist.lastWatched,
+          // Note: upcomingVideo stays as-is since removing a video doesn't affect what's upcoming
           lastUpdated: new Date().toISOString(),
         }
       : playlist

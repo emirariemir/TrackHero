@@ -17,26 +17,59 @@ const generateProgressHTML = (completed, total) => {
   `;
 };
 
-// Helper to generate the list of videos
-const generateVideoListHTML = (videos) => {
-  if (!videos || videos.length === 0)
-    return '<div class="empty-state" style="padding:10px 0;">No videos watched yet</div>';
+/**
+ * generateVideoNavigationHTML(lastWatched, upcomingVideo)
+ * --------------------------------------------------------
+ * Generates the "Previous" and "Next" video navigation UI.
+ * Each video is clickable and opens the corresponding YouTube video.
+ */
+const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
+  let navHtml = '<div class="video-navigation">';
 
-  return videos
-    .map((video) => {
-      // Handle both old format (string) and new format (object)
-      const title = typeof video === "string" ? "Unknown Title" : video.title;
-
-      return `
-      <div class="watched-video-item">
-        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <div class="video-item-title">${title}</div>
+  // Last Watched Video (Previous)
+  if (lastWatched && lastWatched.url) {
+    navHtml += `
+      <a href="${lastWatched.url}" target="_blank" class="video-nav-item prev-video">
+        <div class="video-nav-label">
+          <span>Last Watched</span>
+        </div>
+        <div class="video-nav-title">${lastWatched.title}</div>
+      </a>
+    `;
+  } else {
+    navHtml += `
+      <div class="video-nav-item prev-video disabled">
+        <div class="video-nav-label">
+          <span>Last Watched</span>
+        </div>
+        <div class="video-nav-title">No video watched yet</div>
       </div>
     `;
-    })
-    .join("");
+  }
+
+  // Upcoming Video (Next)
+  if (upcomingVideo && upcomingVideo.url) {
+    navHtml += `
+      <a href="${upcomingVideo.url}" target="_blank" class="video-nav-item next-video">
+        <div class="video-nav-label">
+          <span>Up Next</span>
+        </div>
+        <div class="video-nav-title">${upcomingVideo.title}</div>
+      </a>
+    `;
+  } else {
+    navHtml += `
+      <div class="video-nav-item next-video disabled">
+        <div class="video-nav-label">
+          <span>Up Next</span>
+        </div>
+        <div class="video-nav-title">All videos completed! 🎉</div>
+      </div>
+    `;
+  }
+
+  navHtml += "</div>";
+  return navHtml;
 };
 
 export const renderUI = (
@@ -111,6 +144,7 @@ export const renderUI = (
     currentContainer.appendChild(activeCard);
   }
 
+  // --- Render Saved Playlists ---
   if (playlists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
@@ -147,7 +181,10 @@ export const renderUI = (
           )}
 
           <div class="watched-list-container">
-            ${generateVideoListHTML(playlist.completedVideos)}
+            ${generateVideoNavigationHTML(
+              playlist.lastWatched,
+              playlist.upcomingVideo
+            )}
 
             <div class="card-footer">
                 <button class="delete-btn">Delete Playlist</button>
