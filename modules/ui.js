@@ -20,8 +20,8 @@ const generateProgressHTML = (completed, total) => {
 /**
  * generateVideoNavigationHTML(lastWatched, upcomingVideo)
  * --------------------------------------------------------
- * Generates the "Previous" and "Next" video navigation UI.
- * Each video is clickable and opens the corresponding YouTube video.
+ * Generates the "Previous" and "Next" video navigation UI in a row layout.
+ * Each video section is clickable and opens the corresponding YouTube video.
  */
 const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
   let navHtml = '<div class="video-navigation">';
@@ -29,19 +29,15 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
   // Last Watched Video (Previous)
   if (lastWatched && lastWatched.url) {
     navHtml += `
-      <a href="${lastWatched.url}" target="_blank" class="video-nav-item prev-video">
-        <div class="video-nav-label">
-          <span>Last Watched</span>
-        </div>
+      <a href="${lastWatched.url}" target="_blank" class="video-nav-item">
+        <div class="video-nav-label">Last watched video</div>
         <div class="video-nav-title">${lastWatched.title}</div>
       </a>
     `;
   } else {
     navHtml += `
-      <div class="video-nav-item prev-video disabled">
-        <div class="video-nav-label">
-          <span>Last Watched</span>
-        </div>
+      <div class="video-nav-item disabled">
+        <div class="video-nav-label">Last watched video</div>
         <div class="video-nav-title">No video watched yet</div>
       </div>
     `;
@@ -50,19 +46,15 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
   // Upcoming Video (Next)
   if (upcomingVideo && upcomingVideo.url) {
     navHtml += `
-      <a href="${upcomingVideo.url}" target="_blank" class="video-nav-item next-video">
-        <div class="video-nav-label">
-          <span>Up Next</span>
-        </div>
+      <a href="${upcomingVideo.url}" target="_blank" class="video-nav-item">
+        <div class="video-nav-label">Upcoming video</div>
         <div class="video-nav-title">${upcomingVideo.title}</div>
       </a>
     `;
   } else {
     navHtml += `
-      <div class="video-nav-item next-video disabled">
-        <div class="video-nav-label">
-          <span>Up Next</span>
-        </div>
+      <div class="video-nav-item disabled">
+        <div class="video-nav-label">Upcoming video</div>
         <div class="video-nav-title">All videos completed! 🎉</div>
       </div>
     `;
