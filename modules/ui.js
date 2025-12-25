@@ -178,6 +178,8 @@ export const renderUI = (
             playlist.totalVideos
           )}
 
+          <button class="go-btn">Go to Playlist</button>
+
           <div class="watched-list-container">
             ${generateVideoNavigationHTML(
               playlist.lastWatched,
@@ -194,6 +196,12 @@ export const renderUI = (
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
           card.classList.toggle("expanded");
+        });
+
+        const gotToBtn = card.querySelector(".go-btn");
+        gotToBtn.addEventListener("click", () => {
+          const playlistUrl = `https://www.youtube.com/playlist?list=${playlist.playlistId}`;
+          window.open(playlistUrl, "_blank");
         });
 
         const resetBtn = card.querySelector(".reset-btn");
