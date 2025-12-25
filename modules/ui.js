@@ -178,6 +178,8 @@ export const renderUI = (
             playlist.totalVideos
           )}
 
+          <button class="go-btn">Go to Playlist</button>
+
           <div class="watched-list-container">
             ${generateVideoNavigationHTML(
               playlist.lastWatched,
