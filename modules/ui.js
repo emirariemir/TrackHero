@@ -198,6 +198,12 @@ export const renderUI = (
           card.classList.toggle("expanded");
         });
 
+        const gotToBtn = card.querySelector(".go-btn");
+        gotToBtn.addEventListener("click", () => {
+          const playlistUrl = `https://www.youtube.com/playlist?list=${playlist.playlistId}`;
+          window.open(playlistUrl, "_blank");
+        });
+
         const resetBtn = card.querySelector(".reset-btn");
         resetBtn.addEventListener("click", (e) => {
           e.stopPropagation();
