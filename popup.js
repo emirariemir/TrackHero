@@ -4,7 +4,7 @@ import { scrapePlaylistData } from "./modules/scraper.js";
 import {
   getPlaylists,
   savePlaylist,
-  markVideoAsWatched,
+  resetPlaylistProgress,
   deletePlaylist,
 } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
@@ -50,31 +50,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Re-render with the new list
     renderUI(
       id,
-      videoId,
       data,
       updatedList,
       handleSaveAction,
-      handleMarkAction,
+      handleResetPlaylistAction,
       handleDeleteAction
     );
   };
 
-  const handleMarkAction = async (playlistId, videoId, videoTitle) => {
-    const updatedList = await markVideoAsWatched(
-      playlistId,
-      videoId,
-      videoTitle
+  const handleResetPlaylistAction = async (playlistId) => {
+    const confirmReset = confirm(
+      "Are you sure you want to reset progress for this playlist?"
     );
-    // Re-render with the new list
-    renderUI(
-      playlistId,
-      videoId,
-      currentData,
-      updatedList,
-      handleSaveAction,
-      handleMarkAction,
-      handleDeleteAction
-    );
+    if (confirmReset) {
+      const updatedList = await resetPlaylistProgress(playlistId);
+
+      renderUI(
+        currentPlaylistId,
+        currentData,
+        updatedList,
+        handleSaveAction,
+        handleResetPlaylistAction,
+        handleDeleteAction
+      );
+    }
   };
 
   const handleDeleteAction = async (playlistId) => {
@@ -86,11 +85,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Re-render UI with the updated list
       renderUI(
         currentPlaylistId,
-        videoId,
         currentData,
         updatedList,
         handleSaveAction,
-        handleMarkAction,
+        handleResetPlaylistAction,
         handleDeleteAction
       );
     }
@@ -100,11 +98,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const savedPlaylists = await getPlaylists();
   renderUI(
     currentPlaylistId,
-    videoId,
     currentData,
     savedPlaylists,
     handleSaveAction,
-    handleMarkAction,
+    handleResetPlaylistAction,
     handleDeleteAction
   );
 });

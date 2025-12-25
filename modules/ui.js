@@ -1,5 +1,8 @@
-// modules/ui.js
-
+/**
+ * generateProgressHTML(completed, total)
+ * --------------------------------------
+ * Builds progress bar markup showing watched counts and percentage, handling empty totals and marking completion at 100%.
+ */
 const generateProgressHTML = (completed, total) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isFinished = percentage === 100;
@@ -17,35 +20,63 @@ const generateProgressHTML = (completed, total) => {
   `;
 };
 
-// Helper to generate the list of videos
-const generateVideoListHTML = (videos) => {
-  if (!videos || videos.length === 0)
-    return '<div class="empty-state" style="padding:10px 0;">No videos watched yet</div>';
+/**
+ * generateVideoNavigationHTML(lastWatched, upcomingVideo)
+ * --------------------------------------------------------
+ * Generates the "Previous" and "Next" video navigation UI in a row layout with disabled states when no links exist.
+ * Each video section is clickable and opens the corresponding YouTube video when available.
+ */
+const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
+  let navHtml = '<div class="video-navigation">';
 
-  return videos
-    .map((video) => {
-      // Handle both old format (string) and new format (object)
-      const title = typeof video === "string" ? "Unknown Title" : video.title;
-
-      return `
-      <div class="watched-video-item">
-        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <div class="video-item-title">${title}</div>
+  if (lastWatched && lastWatched.url) {
+    navHtml += `
+      <a href="${lastWatched.url}" target="_blank" class="video-nav-item">
+        <div class="video-nav-label">Last watched video</div>
+        <div class="video-nav-title">${lastWatched.title}</div>
+      </a>
+    `;
+  } else {
+    navHtml += `
+      <div class="video-nav-item disabled">
+        <div class="video-nav-label">Last watched video</div>
+        <div class="video-nav-title">Nothing to see here.</div>
       </div>
     `;
-    })
-    .join("");
+  }
+
+  if (upcomingVideo && upcomingVideo.url) {
+    navHtml += `
+      <a href="${upcomingVideo.url}" target="_blank" class="video-nav-item">
+        <div class="video-nav-label">Upcoming video</div>
+        <div class="video-nav-title">${upcomingVideo.title}</div>
+      </a>
+    `;
+  } else {
+    navHtml += `
+      <div class="video-nav-item disabled">
+        <div class="video-nav-label">Upcoming video</div>
+        <div class="video-nav-title">All clear for now.</div>
+      </div>
+    `;
+  }
+
+  navHtml += "</div>";
+  return navHtml;
 };
 
+/**
+ * renderUI(currentId, currentData, playlists, onSave, onReset, onDelete)
+ * ---------------------------------------------------------------------
+ * Renders the active playlist card with tracking actions and the saved playlists list with expandable details.
+ * Handles empty states for missing active or saved playlists while wiring up reset/delete callbacks and progress displays.
+ */
 export const renderUI = (
   currentId,
-  videoId,
   currentData,
   playlists,
   onSave,
-  onMark,
+  onReset,
   onDelete
 ) => {
   const currentContainer = document.getElementById("current-section");
@@ -57,7 +88,6 @@ export const renderUI = (
   const playlistIndex = playlists.findIndex((p) => p.playlistId === currentId);
   const isAlreadySaved = playlists.some((p) => p.playlistId === currentId);
 
-  // --- Render Current Section ---
   if (!currentId) {
     currentContainer.innerHTML =
       '<div class="empty-state-playlist">No active playlist found</div>';
@@ -149,9 +179,13 @@ export const renderUI = (
           )}
 
           <div class="watched-list-container">
-            ${generateVideoListHTML(playlist.completedVideos)}
+            ${generateVideoNavigationHTML(
+              playlist.lastWatched,
+              playlist.upcomingVideo
+            )}
 
             <div class="card-footer">
+                <button class="reset-btn">Reset Playlist</button>
                 <button class="delete-btn">Delete Playlist</button>
             </div>
           </div>
@@ -162,8 +196,15 @@ export const renderUI = (
           card.classList.toggle("expanded");
         });
 
+        const resetBtn = card.querySelector(".reset-btn");
+        resetBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onReset(playlist.playlistId);
+        });
+
         const deleteBtn = card.querySelector(".delete-btn");
         deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
           onDelete(playlist.playlistId);
         });
 

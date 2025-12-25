@@ -8,6 +8,9 @@
   --accent-color: #fc49ff;
   --accent-hover: #4f46e5;
   --danger-color: #ff2e1c;
+  --text-dark: #3e3e3e;
+  --bg-dark: #202020;
+  --success-color: #4ade80;
 }
 
 html:before {
@@ -43,7 +46,7 @@ h3 {
 }
 
 .empty-state {
-  color: #3e3e3e;
+  color: var(--text-dark);
   opacity: 0.5;
   font-style: italic;
   text-align: center;
@@ -95,7 +98,7 @@ h3 {
 .playlist-title {
   font-weight: 600;
   font-size: 14px;
-  color: #3e3e3e;
+  color: var(--text-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -154,7 +157,7 @@ h3 {
 
 .active-card .progress-track {
   height: 8px;
-  background-color: #202020;
+  background-color: var(--bg-dark);
   border: none;
 }
 
@@ -163,7 +166,7 @@ h3 {
 }
 
 .active-card .action-btn {
-  background-color: #202020;
+  background-color: var(--bg-dark);
   color: white;
   border: none;
   border-radius: 8px;
@@ -219,7 +222,7 @@ h3 {
 }
 
 .progress-fill.completed {
-  background-color: #4ade80;
+  background-color: var(--success-color);
 }
 
 .card-header {
@@ -240,7 +243,7 @@ h3 {
 .saved-list-title {
   font-size: 14px;
   font-weight: 600;
-  color: #3e3e3e;
+  color: var(--text-dark);
   margin-bottom: 8px;
 }
 
@@ -279,7 +282,7 @@ h3 {
 
 .check-icon {
   color: var(--text-primary);
-  background-color: #4ade80;
+  background-color: var(--success-color);
   width: 12px;
   height: 12px;
   flex-shrink: 0;
@@ -293,19 +296,41 @@ h3 {
 }
 
 .card-footer {
-  margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px dashed #333;
   display: flex;
   width: 100%;
 }
 
+.reset-btn {
+  width: 100%;
+  background-color: var(--bg-dark);
+  color: #ffffff;
+  padding: 12px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-right: 8px;
+  transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+  transform: translateY(-1px);
+}
+
+.reset-btn:active {
+  transform: scale(0.98);
+}
+
 .delete-btn {
   width: 100%;
-  background-color: var(--danger-color);
-  border: 1px solid var(--text-primary);
-  padding: 8px 10px;
+  background-color: #d62424;
+  color: #ffffff;
+  padding: 12px 10px;
   border-radius: 8px;
+  border: none;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -315,9 +340,54 @@ h3 {
 
 .delete-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .delete-btn:active {
   transform: scale(0.98);
+}
+
+.video-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.video-nav-item {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.video-nav-item:not(.disabled):hover .video-nav-title {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.video-nav-item.disabled {
+  cursor: not-allowed;
+}
+
+.video-nav-label {
+  font-size: 11px;
+  color: #888;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.video-nav-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.video-nav-item.disabled .video-nav-title {
+  color: #999;
 }

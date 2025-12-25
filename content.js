@@ -3,16 +3,11 @@
 let currentObserver = null;
 let currentCompletedMap = new Set();
 
-/*
+/**
  * waitForElements(selector, callback, map)
  * ----------------------------------------
- * Scans the DOM for all elements matching the given selector and applies
- * the provided callback to each. Then sets up a MutationObserver that keeps
- * watching the document for new elements being added (e.g., YouTube dynamically
- * rendering playlist items).
- *
- * Ensures only one observer exists at a time by disconnecting any previous one.
- * This prevents memory leaks and duplicate button injections.
+ * Watches the page for matching elements, runs the callback on each one immediately, and re-runs when the DOM changes.
+ * Keeps one mutation observer alive at a time so buttons stay in sync as YouTube reshuffles items.
  */
 function waitForElements(selector, callback, map) {
   document.querySelectorAll(selector).forEach((el) => callback(el, map));
@@ -29,14 +24,10 @@ function waitForElements(selector, callback, map) {
   currentObserver = obs;
 }
 
-/*
+/**
  * getUrlForItem(item)
- * --------------------
- * Extracts the video URL from a YouTube playlist DOM item. YouTube may use
- * different anchor IDs ("wc-endpoint" or "thumbnail"), so both are checked.
- *
- * Converts the extracted href into a fully qualified URL object. Returns null
- * if the URL can't be parsed or is missing.
+ * -------------------
+ * Looks inside a playlist item for its link and returns a full YouTube URL, falling back cleanly when missing.
  */
 function getUrlForItem(item) {
   const link =
@@ -56,15 +47,10 @@ function getUrlForItem(item) {
   return url;
 }
 
-/*
+/**
  * buildCompletedMap(playlists)
  * -----------------------------
- * Builds a Set containing the IDs of all completed videos across all playlists.
- * The Set allows O(1) lookup for checking whether a particular video is marked
- * as completed.
- *
- * Expected structure:
- *   playlists = [{ completedVideos: [{ id, title }, ...] }, ...]
+ * Walks through saved playlists and collects watched video IDs into a Set so we can quickly ask, “is this one done?”
  */
 function buildCompletedMap(playlists) {
   const map = new Set();
@@ -76,12 +62,10 @@ function buildCompletedMap(playlists) {
   return map;
 }
 
-/*
+/**
  * getTitleForItem(item)
- * ----------------------
- * Extracts the video title from the DOM.
- * Preferred source is the 'title' attribute of the #video-title element,
- * as it contains the full string without truncation or extra whitespace.
+ * ---------------------
+ * Grabs the visible title text from a playlist row, using a friendly default if YouTube doesn’t expose one.
  */
 function getTitleForItem(item) {
   const titleEl = item.querySelector("#video-title");
@@ -91,21 +75,48 @@ function getTitleForItem(item) {
   return titleEl.getAttribute("title") || titleEl.textContent.trim();
 }
 
-/*
+/**
+ * getNextUnwatchedVideo(currentItem, completedMap)
+ * ------------------------------------------------
+ * Starting from the current playlist row, walks forward until it finds the next video not marked as watched.
+ * Returns that video’s title and link, or null if you’ve reached the end.
+ */
+function getNextUnwatchedVideo(currentItem, completedMap) {
+  let nextItem = currentItem.nextElementSibling;
+
+  while (nextItem) {
+    if (nextItem.querySelector("#video-title")) {
+      const url = getUrlForItem(nextItem);
+      if (!url) {
+        nextItem = nextItem.nextElementSibling;
+        continue;
+      }
+
+      const videoId = url.searchParams.get("v");
+      if (!videoId) {
+        nextItem = nextItem.nextElementSibling;
+        continue;
+      }
+
+      if (!completedMap.has(videoId)) {
+        return {
+          title: getTitleForItem(nextItem),
+          url: url.href,
+        };
+      }
+    }
+
+    nextItem = nextItem.nextElementSibling;
+  }
+
+  return null;
+}
+
+/**
  * addCompletionButton(item, completedMap)
- * ----------------------------------------
- * Injects a toggle button next to a playlist item if not already injected.
- * - Extracts the video's URL, ID, and Title from the DOM.
- * - Checks the initial completion state using completedMap to style the button ("+" or "✓").
- *
- * Button click:
- * 1. Checks the *current* state of the video in the global map.
- * 2. If currently completed -> sends "REMOVE_ITEM_FROM_WATCHED".
- * 3. If currently incomplete -> sends "MARK_ITEM_COMPLETE" with the video title.
- * 4. Updates the button's visual state upon success from the background script.
- *
- * Includes full error handling for missing URLs, invalid IDs,
- * and sendMessage failures.
+ * ---------------------------------------
+ * Injects a toggle button beside each playlist item, wiring it to mark a video watched or undo that state.
+ * Talks to the background script to update storage, then restyles the button to reflect the new status.
  */
 function addCompletionButton(item, completedMap) {
   if (item.dataset.trackheroInjected === "true") return;
@@ -137,39 +148,58 @@ function addCompletionButton(item, completedMap) {
   btn.addEventListener("click", async (e) => {
     const isCurrentlyCompleted = currentCompletedMap.has(videoId);
 
-    const messageType = isCurrentlyCompleted
-      ? "REMOVE_ITEM_FROM_WATCHED"
-      : "MARK_ITEM_COMPLETE";
+    if (isCurrentlyCompleted) {
+      try {
+        const response = await chrome.runtime.sendMessage({
+          type: "REMOVE_ITEM_FROM_WATCHED",
+          url: urlForThatVideo.href,
+        });
 
-    try {
-      const response = await chrome.runtime.sendMessage({
-        type: messageType,
-        url: urlForThatVideo.href,
-        title: videoTitle,
-      });
+        if (!response || response.success !== true) {
+          console.error("Background script failed for REMOVE:", response);
+          return;
+        }
 
-      if (!response || response.success !== true) {
-        console.error(`Background script failed for ${messageType}:`, response);
-        return;
+        styleButton(btn, false);
+      } catch (err) {
+        console.error("sendMessage failed:", err);
       }
+    } else {
+      const upcomingVideo = getNextUnwatchedVideo(item, currentCompletedMap);
 
-      styleButton(btn, !isCurrentlyCompleted);
-    } catch (err) {
-      console.error("sendMessage failed:", err);
+      try {
+        const response = await chrome.runtime.sendMessage({
+          type: "MARK_ITEM_COMPLETE",
+          url: urlForThatVideo.href,
+          title: videoTitle,
+          lastWatchedUrl: urlForThatVideo.href,
+          lastWatchedTitle: videoTitle,
+          upcomingVideoUrl: upcomingVideo?.url || null,
+          upcomingVideoTitle: upcomingVideo?.title || null,
+        });
+
+        if (!response || response.success !== true) {
+          console.error(
+            "Background script failed for MARK_ITEM_COMPLETE:",
+            response
+          );
+          return;
+        }
+
+        styleButton(btn, true);
+      } catch (err) {
+        console.error("sendMessage failed:", err);
+      }
     }
   });
 
   item.insertAdjacentElement("beforeend", btn);
 }
 
-/*
+/**
  * styleButton(btn, completed)
- * ----------------------------
- * Applies visual styling to the injected completion button.
- * - If completed → green circular "✓"
- * - If not completed → light gray circular "+"
- *
- * All styling is inline to guarantee consistent appearance across YouTube.
+ * ---------------------------
+ * Shapes the tracking button and flips its icon and colors depending on whether the video is marked done.
  */
 function styleButton(btn, completed) {
   btn.style.width = "28px";
@@ -195,12 +225,10 @@ function styleButton(btn, completed) {
   }
 }
 
-/*
+/**
  * cleanup()
- * ----------
- * Safely disconnects the MutationObserver and cleans internal references.
- * Called during beforeunload to prevent observers from persisting
- * across navigation or tab closure.
+ * ---------
+ * Turns off the mutation observer when the page is closing to avoid lingering work.
  */
 function cleanup() {
   if (currentObserver) {
@@ -209,12 +237,6 @@ function cleanup() {
   }
 }
 
-/*
- * Initial storage load:
- * ----------------------
- * Reads playlists from chrome.storage.local, builds the completedMap,
- * and begins scanning + injecting buttons into #playlist-items elements.
- */
 chrome.storage.local.get(["playlists"], (result) => {
   const playlists = result.playlists || [];
   currentCompletedMap = buildCompletedMap(playlists);
@@ -222,12 +244,6 @@ chrome.storage.local.get(["playlists"], (result) => {
   waitForElements("#playlist-items", addCompletionButton, currentCompletedMap);
 });
 
-/*
- * Storage listener:
- * ------------------
- * When playlists change (e.g., user completes a video), rebuilds the completedMap
- * and updates all injected buttons so the UI stays in sync.
- */
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.playlists) {
     const newPlaylists = changes.playlists.newValue || [];
@@ -237,15 +253,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-/*
+/**
  * updateAllButtons()
- * -------------------
- * Refreshes every already-injected button by:
- * - Re-reading each video's ID
- * - Checking if it is completed in the current map
- * - Re-applying the correct styling
- *
- * Ensures UI state stays accurate even if completion happens elsewhere.
+ * ------------------
+ * Sweeps through every injected button and updates its appearance based on the latest watched list.
  */
 function updateAllButtons() {
   document
