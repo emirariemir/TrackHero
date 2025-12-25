@@ -40,7 +40,7 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
     navHtml += `
       <div class="video-nav-item disabled">
         <div class="video-nav-label">Last watched video</div>
-        <div class="video-nav-title">No video watched yet</div>
+        <div class="video-nav-title">Nothing to see here.</div>
       </div>
     `;
   }
@@ -56,7 +56,7 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
     navHtml += `
       <div class="video-nav-item disabled">
         <div class="video-nav-label">Upcoming video</div>
-        <div class="video-nav-title">All videos completed! 🎉</div>
+        <div class="video-nav-title">All clear for now.</div>
       </div>
     `;
   }
