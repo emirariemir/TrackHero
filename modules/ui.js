@@ -1,5 +1,8 @@
-// modules/ui.js
-
+/**
+ * generateProgressHTML(completed, total)
+ * --------------------------------------
+ * Builds progress bar markup showing watched counts and percentage, handling empty totals and marking completion at 100%.
+ */
 const generateProgressHTML = (completed, total) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isFinished = percentage === 100;
@@ -20,13 +23,12 @@ const generateProgressHTML = (completed, total) => {
 /**
  * generateVideoNavigationHTML(lastWatched, upcomingVideo)
  * --------------------------------------------------------
- * Generates the "Previous" and "Next" video navigation UI in a row layout.
- * Each video section is clickable and opens the corresponding YouTube video.
+ * Generates the "Previous" and "Next" video navigation UI in a row layout with disabled states when no links exist.
+ * Each video section is clickable and opens the corresponding YouTube video when available.
  */
 const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
   let navHtml = '<div class="video-navigation">';
 
-  // Last Watched Video (Previous)
   if (lastWatched && lastWatched.url) {
     navHtml += `
       <a href="${lastWatched.url}" target="_blank" class="video-nav-item">
@@ -43,7 +45,6 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
     `;
   }
 
-  // Upcoming Video (Next)
   if (upcomingVideo && upcomingVideo.url) {
     navHtml += `
       <a href="${upcomingVideo.url}" target="_blank" class="video-nav-item">
@@ -64,6 +65,12 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
   return navHtml;
 };
 
+/**
+ * renderUI(currentId, currentData, playlists, onSave, onReset, onDelete)
+ * ---------------------------------------------------------------------
+ * Renders the active playlist card with tracking actions and the saved playlists list with expandable details.
+ * Handles empty states for missing active or saved playlists while wiring up reset/delete callbacks and progress displays.
+ */
 export const renderUI = (
   currentId,
   currentData,
@@ -81,7 +88,6 @@ export const renderUI = (
   const playlistIndex = playlists.findIndex((p) => p.playlistId === currentId);
   const isAlreadySaved = playlists.some((p) => p.playlistId === currentId);
 
-  // --- Render Current Section ---
   if (!currentId) {
     currentContainer.innerHTML =
       '<div class="empty-state-playlist">No active playlist found</div>';
@@ -137,7 +143,6 @@ export const renderUI = (
     currentContainer.appendChild(activeCard);
   }
 
-  // --- Render Saved Playlists ---
   if (playlists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';

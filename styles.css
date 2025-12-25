@@ -8,6 +8,9 @@
   --accent-color: #fc49ff;
   --accent-hover: #4f46e5;
   --danger-color: #ff2e1c;
+  --text-dark: #3e3e3e;
+  --bg-dark: #202020;
+  --success-color: #4ade80;
 }
 
 html:before {
@@ -43,7 +46,7 @@ h3 {
 }
 
 .empty-state {
-  color: #3e3e3e;
+  color: var(--text-dark);
   opacity: 0.5;
   font-style: italic;
   text-align: center;
@@ -95,7 +98,7 @@ h3 {
 .playlist-title {
   font-weight: 600;
   font-size: 14px;
-  color: #3e3e3e;
+  color: var(--text-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -154,7 +157,7 @@ h3 {
 
 .active-card .progress-track {
   height: 8px;
-  background-color: #202020;
+  background-color: var(--bg-dark);
   border: none;
 }
 
@@ -163,7 +166,7 @@ h3 {
 }
 
 .active-card .action-btn {
-  background-color: #202020;
+  background-color: var(--bg-dark);
   color: white;
   border: none;
   border-radius: 8px;
@@ -219,7 +222,7 @@ h3 {
 }
 
 .progress-fill.completed {
-  background-color: #4ade80;
+  background-color: var(--success-color);
 }
 
 .card-header {
@@ -240,7 +243,7 @@ h3 {
 .saved-list-title {
   font-size: 14px;
   font-weight: 600;
-  color: #3e3e3e;
+  color: var(--text-dark);
   margin-bottom: 8px;
 }
 
@@ -279,7 +282,7 @@ h3 {
 
 .check-icon {
   color: var(--text-primary);
-  background-color: #4ade80;
+  background-color: var(--success-color);
   width: 12px;
   height: 12px;
   flex-shrink: 0;
@@ -300,7 +303,7 @@ h3 {
 
 .reset-btn {
   width: 100%;
-  background-color: #202020;
+  background-color: var(--bg-dark);
   color: #ffffff;
   padding: 12px 10px;
   border-radius: 8px;

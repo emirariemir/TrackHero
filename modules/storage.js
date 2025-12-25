@@ -1,5 +1,10 @@
 // modules/storage.js
 
+/**
+ * getPlaylists()
+ * --------------
+ * Retrieves playlists from local storage, returning an empty array when none are saved.
+ */
 export const getPlaylists = () => {
   return new Promise((resolve) => {
     chrome.storage.local.get(["playlists"], (result) => {
@@ -10,9 +15,9 @@ export const getPlaylists = () => {
 
 /**
  * savePlaylist async(playlistId, data)
+ * -------------------------------------
  * Saves a new playlist entry into local storage with initial tracking data.
- *
- * Now includes lastWatched and upcomingVideo fields (both null initially).
+ * Initializes lastWatched and upcomingVideo placeholders to null, ready for later updates.
  */
 export const savePlaylist = async (playlistId, data) => {
   const playlists = await getPlaylists();
@@ -23,8 +28,8 @@ export const savePlaylist = async (playlistId, data) => {
     channelName: data.channelName,
     totalVideos: data.total,
     completedVideos: [],
-    lastWatched: null, // { title, url }
-    upcomingVideo: null, // { title, url }
+    lastWatched: null,
+    upcomingVideo: null,
     lastUpdated: new Date().toISOString(),
   };
 
@@ -37,6 +42,12 @@ export const savePlaylist = async (playlistId, data) => {
   });
 };
 
+/**
+ * resetPlaylistProgress async(playlistId)
+ * ---------------------------------------
+ * Clears completed videos and last watched/upcoming details for a playlist while refreshing lastUpdated.
+ * Leaves other playlist metadata intact and returns the updated collection.
+ */
 export const resetPlaylistProgress = async (playlistId) => {
   const playlists = await getPlaylists();
   const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
@@ -64,7 +75,8 @@ export const resetPlaylistProgress = async (playlistId) => {
 
 /**
  * deletePlaylist async(playlistId)
- * Deletes a playlist from storage using its playlist ID.
+ * ---------------------------------
+ * Deletes a playlist from storage using its playlist ID and returns the remaining items.
  */
 export const deletePlaylist = async (playlistId) => {
   const playlists = await getPlaylists();
@@ -80,13 +92,9 @@ export const deletePlaylist = async (playlistId) => {
 
 /**
  * markVideoAsWatched async(playlistId, videoId, videoTitle, trackingData)
- * Marks a video as watched and updates tracking information.
- *
- * trackingData contains:
- * - lastWatchedUrl: URL of the video just marked as watched
- * - lastWatchedTitle: Title of the video just marked as watched
- * - upcomingVideoUrl: URL of the next unwatched video (can be null)
- * - upcomingVideoTitle: Title of the next unwatched video (can be null)
+ * ----------------------------------------------------------------------
+ * Marks a video as watched, skipping duplicates, and refreshes lastWatched/upcoming details plus lastUpdated.
+ * Accepts trackingData to populate navigation metadata for the current and next videos in the playlist.
  */
 export const markVideoAsWatched = async (
   playlistId,
@@ -101,7 +109,6 @@ export const markVideoAsWatched = async (
 
   const currentPlaylist = playlists[playlistIndex];
 
-  // Don't add duplicate videos
   if (currentPlaylist.completedVideos.some((v) => v.id === videoId)) {
     return playlists;
   }
@@ -138,9 +145,9 @@ export const markVideoAsWatched = async (
 
 /**
  * removeVideoFromWatched async(playlistId, videoId)
- * Removes a previously watched video from a playlist.
- *
- * Also clears lastWatched if the removed video was the last watched one.
+ * --------------------------------------------------
+ * Removes a previously watched video from a playlist and updates tracking timestamps.
+ * Clears lastWatched when the removed video matches that record while leaving upcomingVideo unchanged.
  */
 export const removeVideoFromWatched = async (playlistId, videoId) => {
   const playlists = await getPlaylists();
@@ -150,7 +157,6 @@ export const removeVideoFromWatched = async (playlistId, videoId) => {
 
   const currentPlaylist = playlists[playlistIndex];
 
-  // Check if we're removing the last watched video
   const removingLastWatched =
     currentPlaylist.lastWatched &&
     currentPlaylist.lastWatched.url &&
@@ -163,9 +169,7 @@ export const removeVideoFromWatched = async (playlistId, videoId) => {
           completedVideos: playlist.completedVideos.filter(
             (v) => v.id !== videoId
           ),
-          // Clear lastWatched if we're removing that video
           lastWatched: removingLastWatched ? null : playlist.lastWatched,
-          // Note: upcomingVideo stays as-is since removing a video doesn't affect what's upcoming
           lastUpdated: new Date().toISOString(),
         }
       : playlist
