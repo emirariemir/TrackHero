@@ -1,7 +1,9 @@
 import { generateCertificate, showNameModal } from "./utils.js";
 
 /**
- * Updated generateProgressHTML with certificate button action
+ * generateProgressHTML(completed, total)
+ * --------------------------------------
+ * Builds progress bar markup showing watched counts and percentage, handling empty totals and marking completion at 100%.
  */
 const generateProgressHTML = (completed, total) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
