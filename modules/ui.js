@@ -1,13 +1,126 @@
 /**
- * generateProgressHTML(completed, total)
- * --------------------------------------
- * Builds progress bar markup showing watched counts and percentage, handling empty totals and marking completion at 100%.
+ * generateCertificate(playlistTitle, channelName, totalVideos)
+ * -----------------------------------------------------------
+ * Generates and downloads a PDF certificate for completing a playlist
+ * Using HTML Canvas approach - no external library needed
+ */
+const generateCertificate = (playlistTitle, channelName, totalVideos) => {
+  // Create a hidden canvas
+  const canvas = document.createElement("canvas");
+  canvas.width = 1920;
+  canvas.height = 1357; // A4 landscape ratio
+  const ctx = canvas.getContext("2d");
+
+  // Background
+  ctx.fillStyle = "#f0f0fa";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Decorative border
+  ctx.strokeStyle = "#9c98ff";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120);
+
+  ctx.lineWidth = 3;
+  ctx.strokeRect(90, 90, canvas.width - 180, canvas.height - 180);
+
+  // Certificate title
+  ctx.fillStyle = "#3e3e3e";
+  ctx.font = "bold 120px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Certificate of Completion", canvas.width / 2, 320);
+
+  // Decorative line
+  ctx.strokeStyle = "#9c98ff";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(480, 400);
+  ctx.lineTo(canvas.width - 480, 400);
+  ctx.stroke();
+
+  // Main text
+  ctx.fillStyle = "#666666";
+  ctx.font = "48px Arial";
+  ctx.fillText("This is to certify that", canvas.width / 2, 520);
+
+  // Recipient name
+  ctx.fillStyle = "#3e3e3e";
+  ctx.font = "bold 80px Arial";
+  ctx.fillText("YouTube Learner", canvas.width / 2, 630);
+
+  // Achievement text
+  ctx.fillStyle = "#666666";
+  ctx.font = "48px Arial";
+  ctx.fillText("has successfully completed", canvas.width / 2, 730);
+
+  // Playlist title (with text wrapping)
+  ctx.fillStyle = "#9c98ff";
+  ctx.font = "bold 64px Arial";
+  const maxWidth = 1500;
+  const words = playlistTitle.split(" ");
+  let line = "";
+  let y = 850;
+  const lineHeight = 80;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + " ";
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && i > 0) {
+      ctx.fillText(line, canvas.width / 2, y);
+      line = words[i] + " ";
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, canvas.width / 2, y);
+  y += lineHeight + 20;
+
+  // Channel and video count
+  ctx.fillStyle = "#666666";
+  ctx.font = "42px Arial";
+
+  if (channelName) {
+    ctx.fillText(`by ${channelName}`, canvas.width / 2, y);
+    y += 60;
+  }
+
+  ctx.fillText(`${totalVideos} videos completed`, canvas.width / 2, y);
+
+  // Date
+  ctx.fillStyle = "#999999";
+  ctx.font = "36px Arial";
+  const today = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  ctx.fillText(`Issued on ${today}`, canvas.width / 2, canvas.height - 100);
+
+  // Convert canvas to blob and download
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const sanitizedTitle = playlistTitle
+      .replace(/[^a-z0-9]/gi, "_")
+      .substring(0, 50);
+    a.href = url;
+    a.download = `Certificate_${sanitizedTitle}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, "image/png");
+};
+
+/**
+ * Updated generateProgressHTML with certificate button action
  */
 const generateProgressHTML = (completed, total) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isFinished = percentage === 100;
 
-  return `
+  let html = `
     <div class="stats-row">
       <span>${completed} / ${total} watched</span>
       <span>${percentage}%</span>
@@ -18,6 +131,16 @@ const generateProgressHTML = (completed, total) => {
       }" style="width: ${percentage}%"></div>
     </div>
   `;
+
+  if (isFinished) {
+    html += `
+      <button class="complete-btn" data-action="generate-certificate">
+        Claim Your Certificate!
+      </button>
+    `;
+  }
+
+  return html;
 };
 
 /**
@@ -161,37 +284,37 @@ export const renderUI = (
           : "";
 
         card.innerHTML = `
-          <div class="card-header">
-            <div style="flex: 1; min-width: 0;">
-                <div class="playlist-title" title="${playlist.playlistTitle}">
-                    ${playlist.playlistTitle}
-                </div>
-                ${pChannel}
+      <div class="card-header">
+        <div style="flex: 1; min-width: 0;">
+            <div class="playlist-title" title="${playlist.playlistTitle}">
+                ${playlist.playlistTitle}
             </div>
-            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
+            ${pChannel}
+        </div>
+        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
 
-          ${generateProgressHTML(
-            playlist.completedVideos.length,
-            playlist.totalVideos
-          )}
+      ${generateProgressHTML(
+        playlist.completedVideos.length,
+        playlist.totalVideos
+      )}
 
-          <button class="go-btn">Go to Playlist</button>
+      <button class="go-btn">Go to Playlist</button>
 
-          <div class="watched-list-container">
-            ${generateVideoNavigationHTML(
-              playlist.lastWatched,
-              playlist.upcomingVideo
-            )}
+      <div class="watched-list-container">
+        ${generateVideoNavigationHTML(
+          playlist.lastWatched,
+          playlist.upcomingVideo
+        )}
 
-            <div class="card-footer">
-                <button class="reset-btn">Reset Playlist</button>
-                <button class="delete-btn">Delete Playlist</button>
-            </div>
-          </div>
-        `;
+        <div class="card-footer">
+            <button class="reset-btn">Reset Playlist</button>
+            <button class="delete-btn">Delete Playlist</button>
+        </div>
+      </div>
+    `;
 
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
@@ -215,6 +338,20 @@ export const renderUI = (
           e.stopPropagation();
           onDelete(playlist.playlistId);
         });
+
+        const certificateBtn = card.querySelector(
+          '[data-action="generate-certificate"]'
+        );
+        if (certificateBtn) {
+          certificateBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            generateCertificate(
+              playlist.playlistTitle,
+              playlist.channelName || "",
+              playlist.totalVideos
+            );
+          });
+        }
 
         savedContainer.appendChild(card);
       });

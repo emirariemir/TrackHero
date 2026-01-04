@@ -10,7 +10,7 @@
   --danger-color: #ff2e1c;
   --text-dark: #3e3e3e;
   --bg-dark: #202020;
-  --success-color: #4ade80;
+  --success-color: #6ad290;
 }
 
 html:before {
@@ -412,4 +412,28 @@ h3 {
 
 .video-nav-item.disabled .video-nav-title {
   color: #999;
+}
+
+.complete-btn {
+  width: 100%;
+  background-color: var(--success-color);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+
+.complete-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(106, 210, 144, 0.3);
+}
+
+.complete-btn:active {
+  transform: scale(0.98);
 }
