@@ -32,13 +32,53 @@ body {
   margin: 0;
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.title-section {
+  flex: 1;
+}
+
 h3 {
-  margin: 0 0 16px 0;
+  margin: 0 0 4px 0;
   font-size: 18px;
   letter-spacing: -0.5px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.user-greeting {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: normal;
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.user-greeting:hover {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: underline;
+}
+
+.settings-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.settings-icon:hover {
+  opacity: 1;
+  transform: rotate(90deg);
 }
 
 ::-webkit-scrollbar {
@@ -438,7 +478,7 @@ h3 {
   transform: scale(0.98);
 }
 
-.certificate-modal {
+.settings-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -452,7 +492,7 @@ h3 {
   padding-top: 20px;
 }
 
-.certificate-modal-content {
+.settings-modal-content {
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -474,14 +514,14 @@ h3 {
   }
 }
 
-.certificate-modal-content h2 {
+.settings-modal-content h2 {
   margin: 0 0 4px 0;
   font-size: 18px;
   color: #3e3e3e;
   text-align: center;
 }
 
-.certificate-modal-content p {
+.settings-modal-content p {
   margin: 0 0 16px 0;
   font-size: 13px;
   color: #666;
@@ -516,7 +556,7 @@ h3 {
 }
 
 .modal-cancel-btn,
-.modal-generate-btn {
+.modal-save-btn {
   flex: 1;
   padding: 10px 16px;
   border: none;
@@ -536,17 +576,17 @@ h3 {
   background-color: #d0d0d0;
 }
 
-.modal-generate-btn {
-  background-color: #6ad290;
+.modal-save-btn {
+  background-color: #9c98ff;
   color: white;
 }
 
-.modal-generate-btn:hover {
-  background-color: #5bc080;
+.modal-save-btn:hover {
+  background-color: #8b7fee;
   transform: translateY(-1px);
 }
 
-.modal-generate-btn:active,
+.modal-save-btn:active,
 .modal-cancel-btn:active {
   transform: scale(0.98);
 }

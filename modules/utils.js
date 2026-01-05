@@ -7,22 +7,48 @@ export const getActiveTab = async () => {
 };
 
 /**
- * showNameModal(callback)
- * -----------------------
- * Shows a modal dialog to collect user's name before generating certificate
+ * getUserName()
+ * -------------
+ * Retrieves the stored user name from chrome storage
  */
-export const showNameModal = (callback) => {
+export const getUserName = async () => {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["userName"], (result) => {
+      resolve(result.userName || "Guest");
+    });
+  });
+};
+
+/**
+ * setUserName(name)
+ * -----------------
+ * Saves the user name to chrome storage
+ */
+export const setUserName = async (name) => {
+  return new Promise((resolve) => {
+    chrome.storage.sync.set({ userName: name }, () => {
+      resolve();
+    });
+  });
+};
+
+/**
+ * showSettingsModal(currentName, callback)
+ * -----------------------------------------
+ * Shows a modal dialog to update user's name in settings
+ */
+export const showSettingsModal = (currentName, callback) => {
   const modal = document.createElement("div");
-  modal.className = "certificate-modal";
+  modal.className = "settings-modal";
   modal.innerHTML = `
-    <div class="certificate-modal-content">
-      <h2>Claim Your Certificate</h2>
-      <p>Enter your name to personalize your certificate</p>
+    <div class="settings-modal-content">
+      <h2>Update Your Name</h2>
+      <p>Personalize your TrackHero experience</p>
       <input type="text" id="user-first-name" placeholder="First Name" class="name-input" />
       <input type="text" id="user-last-name" placeholder="Last Name" class="name-input" />
       <div class="modal-buttons">
         <button class="modal-cancel-btn">Cancel</button>
-        <button class="modal-generate-btn">Generate Certificate</button>
+        <button class="modal-save-btn">Save</button>
       </div>
     </div>
   `;
@@ -31,8 +57,15 @@ export const showNameModal = (callback) => {
 
   const firstNameInput = modal.querySelector("#user-first-name");
   const lastNameInput = modal.querySelector("#user-last-name");
-  const generateBtn = modal.querySelector(".modal-generate-btn");
+  const saveBtn = modal.querySelector(".modal-save-btn");
   const cancelBtn = modal.querySelector(".modal-cancel-btn");
+
+  // Pre-fill current name
+  if (currentName && currentName !== "Guest") {
+    const nameParts = currentName.split(" ");
+    firstNameInput.value = nameParts[0] || "";
+    lastNameInput.value = nameParts.slice(1).join(" ") || "";
+  }
 
   firstNameInput.focus();
 
@@ -40,7 +73,7 @@ export const showNameModal = (callback) => {
     modal.remove();
   };
 
-  generateBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", () => {
     const firstName = firstNameInput.value.trim();
     const lastName = lastNameInput.value.trim();
 
@@ -63,7 +96,7 @@ export const showNameModal = (callback) => {
   // Enter key to submit
   [firstNameInput, lastNameInput].forEach((input) => {
     input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") generateBtn.click();
+      if (e.key === "Enter") saveBtn.click();
     });
   });
 };
@@ -71,8 +104,7 @@ export const showNameModal = (callback) => {
 /**
  * generateCertificate(playlistTitle, channelName, totalVideos, userName)
  * ----------------------------------------------------------------------
- * Generates and downloads a certificate for completing a playlist
- * Using HTML Canvas approach - no external library needed
+ * Generates and downloads a certificate matching the custom design
  */
 export const generateCertificate = (
   playlistTitle,
@@ -80,110 +112,199 @@ export const generateCertificate = (
   totalVideos,
   userName = "YouTube Learner"
 ) => {
-  // Create a hidden canvas
   const canvas = document.createElement("canvas");
-  canvas.width = 1920;
-  canvas.height = 1357; // A4 landscape ratio
+  // 2x resolution for better quality
+  canvas.width = 2048;
+  canvas.height = 1536;
   const ctx = canvas.getContext("2d");
 
-  // Background
-  ctx.fillStyle = "#f0f0fa";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Load the certification logo
+  const logo = new Image();
+  logo.src = "certification-logo.png"; // Adjust path as needed
 
-  // Decorative border
-  ctx.strokeStyle = "#9c98ff";
-  ctx.lineWidth = 10;
-  ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120);
+  logo.onload = () => {
+    // White background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.lineWidth = 3;
-  ctx.strokeRect(90, 90, canvas.width - 180, canvas.height - 180);
+    // Gradient border (purple to cyan)
+    const borderWidth = 40;
+    const gradient = ctx.createLinearGradient(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+    gradient.addColorStop(0, "#a855f7"); // Purple
+    gradient.addColorStop(1, "#06b6d4"); // Cyan
 
-  // Certificate title
-  ctx.fillStyle = "#3e3e3e";
-  ctx.font = "bold 120px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("Certificate of Completion", canvas.width / 2, 320);
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(
+      borderWidth / 2,
+      borderWidth / 2,
+      canvas.width - borderWidth,
+      canvas.height - borderWidth
+    );
 
-  // Decorative line
-  ctx.strokeStyle = "#9c98ff";
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(480, 400);
-  ctx.lineTo(canvas.width - 480, 400);
-  ctx.stroke();
+    // Inner blue border
+    const innerBorderOffset = 80;
+    ctx.strokeStyle = "#6366f1"; // Blue/Indigo
+    ctx.lineWidth = 3;
+    ctx.strokeRect(
+      innerBorderOffset,
+      innerBorderOffset,
+      canvas.width - innerBorderOffset * 2,
+      canvas.height - innerBorderOffset * 2
+    );
 
-  // Main text
-  ctx.fillStyle = "#666666";
-  ctx.font = "48px Arial";
-  ctx.fillText("This is to certify that", canvas.width / 2, 520);
+    // Corner grid decorations
+    const drawCornerGrid = (x, y, flipX = 1, flipY = 1) => {
+      ctx.save();
+      ctx.strokeStyle = "#6366f1";
+      ctx.lineWidth = 3;
 
-  // Recipient name
-  ctx.fillStyle = "#3e3e3e";
-  ctx.font = "bold 80px Arial";
-  ctx.fillText(userName, canvas.width / 2, 630);
+      const gridSize = 60;
+      const cellSize = 30;
 
-  // Achievement text
-  ctx.fillStyle = "#666666";
-  ctx.font = "48px Arial";
-  ctx.fillText("has successfully completed", canvas.width / 2, 730);
+      // Vertical line
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y + flipY * gridSize);
+      ctx.stroke();
 
-  // Playlist title (with text wrapping)
-  ctx.fillStyle = "#9c98ff";
-  ctx.font = "bold 64px Arial";
-  const maxWidth = 1500;
-  const words = playlistTitle.split(" ");
-  let line = "";
-  let y = 850;
-  const lineHeight = 80;
+      // Horizontal line
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + flipX * gridSize, y);
+      ctx.stroke();
 
-  for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + " ";
-    const metrics = ctx.measureText(testLine);
+      // Grid cell
+      ctx.strokeRect(
+        flipX > 0 ? x : x - cellSize,
+        flipY > 0 ? y : y - cellSize,
+        cellSize,
+        cellSize
+      );
 
-    if (metrics.width > maxWidth && i > 0) {
-      ctx.fillText(line, canvas.width / 2, y);
-      line = words[i] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
+      ctx.restore();
+    };
+
+    // Draw corner grids
+    drawCornerGrid(120, 120, 1, 1); // Top-left
+    drawCornerGrid(canvas.width - 120, 120, -1, 1); // Top-right
+    drawCornerGrid(canvas.width - 120, canvas.height - 120, -1, -1); // Bottom-right
+    drawCornerGrid(120, canvas.height - 120, 1, -1); // Bottom-left
+
+    // "Mini-" text (Arial Rounded)
+    ctx.fillStyle = "#000000";
+    ctx.font =
+      "48px 'Arial Rounded MT Bold', 'Arial Rounded', Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Mini-", canvas.width / 2, 280);
+
+    // "Certificate of Completion" text (Arial Rounded Bold)
+    ctx.font =
+      "bold 110px 'Arial Rounded MT Bold', 'Arial Rounded', Arial, sans-serif";
+    ctx.fillText("Certificate of Completion", canvas.width / 2, 390);
+
+    // Subtitle text
+    ctx.fillStyle = "#1f2937";
+    ctx.font = "32px Arial, sans-serif";
+    ctx.fillText(
+      "This mini-certificate is proudly presented to",
+      canvas.width / 2,
+      520
+    );
+
+    // User name with handwritten font (Coming Soon)
+    ctx.fillStyle = "#000000";
+    ctx.font = "90px 'Coming Soon', 'Comic Sans MS', cursive";
+    ctx.fillText(userName, canvas.width / 2, 670);
+
+    // Underline for name
+    const nameWidth = ctx.measureText(userName).width;
+    ctx.strokeStyle = "#1f2937";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2 - nameWidth / 2 - 30, 710);
+    ctx.lineTo(canvas.width / 2 + nameWidth / 2 + 30, 710);
+    ctx.stroke();
+
+    // "For completing X videos in"
+    ctx.fillStyle = "#1f2937";
+    ctx.font = "32px Arial, sans-serif";
+    ctx.fillText(
+      `For completing ${totalVideos} videos in`,
+      canvas.width / 2,
+      830
+    );
+
+    // Playlist title and channel (bold)
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 52px Arial, sans-serif";
+
+    // Combine playlist and channel
+    const fullTitle = channelName
+      ? `${playlistTitle} from ${channelName}`
+      : playlistTitle;
+
+    // Text wrapping for long titles
+    const maxWidth = 1600;
+    const words = fullTitle.split(" ");
+    let line = "";
+    let y = 940;
+    const lineHeight = 65;
+    const lines = [];
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + " ";
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && i > 0) {
+        lines.push(line.trim());
+        line = words[i] + " ";
+      } else {
+        line = testLine;
+      }
     }
-  }
-  ctx.fillText(line, canvas.width / 2, y);
-  y += lineHeight + 20;
+    lines.push(line.trim());
 
-  // Channel and video count
-  ctx.fillStyle = "#666666";
-  ctx.font = "42px Arial";
+    // Center multi-line text
+    lines.forEach((textLine, index) => {
+      ctx.fillText(textLine, canvas.width / 2, y + index * lineHeight);
+    });
 
-  if (channelName) {
-    ctx.fillText(`by ${channelName}`, canvas.width / 2, y);
-    y += 60;
-  }
+    // Draw certification logo at bottom center
+    const logoSize = 120;
+    const logoX = canvas.width / 2 - logoSize / 2;
+    const logoY = canvas.height - 200;
 
-  ctx.fillText(`${totalVideos} videos completed`, canvas.width / 2, y);
+    ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
 
-  // Date
-  ctx.fillStyle = "#999999";
-  ctx.font = "36px Arial";
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  ctx.fillText(`Issued on ${today}`, canvas.width / 2, canvas.height - 100);
+    // Convert canvas to blob and download
+    setTimeout(() => {
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const sanitizedTitle = playlistTitle
+          .replace(/[^a-z0-9]/gi, "_")
+          .substring(0, 50);
+        a.href = url;
+        a.download = `Mini_Certificate_${sanitizedTitle}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    }, 100);
+  };
 
-  // Convert canvas to blob and download
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const sanitizedTitle = playlistTitle
-      .replace(/[^a-z0-9]/gi, "_")
-      .substring(0, 50);
-    a.href = url;
-    a.download = `Certificate_${sanitizedTitle}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, "image/png");
+  // Handle logo loading error
+  logo.onerror = () => {
+    console.error("Failed to load certification logo");
+    // Still generate certificate without logo
+    logo.onload();
+  };
 };

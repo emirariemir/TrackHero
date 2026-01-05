@@ -1,5 +1,10 @@
 // popup.js
-import { getActiveTab } from "./modules/utils.js";
+import {
+  getActiveTab,
+  getUserName,
+  setUserName,
+  showSettingsModal,
+} from "./modules/utils.js";
 import { scrapePlaylistData } from "./modules/scraper.js";
 import {
   getPlaylists,
@@ -9,7 +14,34 @@ import {
 } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
 
+// Initialize greeting on load
+const initGreeting = async () => {
+  const userName = await getUserName();
+  const greetingEl = document.getElementById("user-greeting");
+  greetingEl.textContent = `Hello there, ${userName}`;
+};
+
+// Setup settings icon click handler
+const setupSettingsHandler = () => {
+  const settingsIcon = document.getElementById("settings-icon");
+  const greetingEl = document.getElementById("user-greeting");
+
+  const openSettings = async () => {
+    const currentName = await getUserName();
+    showSettingsModal(currentName, async (newName) => {
+      await setUserName(newName);
+      greetingEl.textContent = `Hello there, ${newName}`;
+    });
+  };
+
+  settingsIcon.addEventListener("click", openSettings);
+  greetingEl.addEventListener("click", openSettings);
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
+  await initGreeting();
+  setupSettingsHandler();
+
   // 1. Get Environment Data
   const activeTab = await getActiveTab();
   let currentPlaylistId = null;

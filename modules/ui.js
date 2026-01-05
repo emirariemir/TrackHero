@@ -1,4 +1,4 @@
-import { generateCertificate, showNameModal } from "./utils.js";
+import { generateCertificate, getUserName } from "./utils.js";
 
 /**
  * generateProgressHTML(completed, total)
@@ -232,16 +232,15 @@ export const renderUI = (
           '[data-action="generate-certificate"]'
         );
         if (certificateBtn) {
-          certificateBtn.addEventListener("click", (e) => {
+          certificateBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
-            showNameModal((userName) => {
-              generateCertificate(
-                playlist.playlistTitle,
-                playlist.channelName || "",
-                playlist.totalVideos,
-                userName
-              );
-            });
+            const userName = await getUserName();
+            generateCertificate(
+              playlist.playlistTitle,
+              playlist.channelName || "",
+              playlist.totalVideos,
+              userName
+            );
           });
         }
 
