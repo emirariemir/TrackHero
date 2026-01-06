@@ -102,16 +102,36 @@ export const showSettingsModal = (currentName, callback) => {
 };
 
 /**
+ * loadCustomFont()
+ * ----------------
+ * Loads the custom Coming Soon font before generating certificate
+ */
+const loadCustomFont = async () => {
+  const font = new FontFace("Coming Soon", "url(ComingSoon-Regular.ttf)");
+
+  try {
+    const loadedFont = await font.load();
+    document.fonts.add(loadedFont);
+    return true;
+  } catch (error) {
+    console.error("Failed to load custom font:", error);
+    return false;
+  }
+};
+
+/**
  * generateCertificate(playlistTitle, channelName, totalVideos, userName)
  * ----------------------------------------------------------------------
  * Generates and downloads a certificate using the custom template design
  */
-export const generateCertificate = (
+export const generateCertificate = async (
   playlistTitle,
   channelName,
   totalVideos,
   userName = "YouTube Learner"
 ) => {
+  await loadCustomFont();
+
   const canvas = document.createElement("canvas");
   canvas.width = 2048;
   canvas.height = 1536;

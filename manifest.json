@@ -8,6 +8,16 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "ComingSoon-Regular.ttf",
+        "GoogleSans.ttf",
+        "certificate-template.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["https://*.youtube.com/*"],
