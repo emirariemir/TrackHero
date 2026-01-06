@@ -10,11 +10,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "ComingSoon-Regular.ttf",
-        "GoogleSans.ttf",
-        "certificate-template.png"
-      ],
+      "resources": ["fonts/*", "certificate-template.png"],
       "matches": ["<all_urls>"]
     }
   ],
