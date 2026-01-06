@@ -1,3 +1,5 @@
+import { generateCertificate, getUserName } from "./utils.js";
+
 /**
  * generateProgressHTML(completed, total)
  * --------------------------------------
@@ -7,7 +9,7 @@ const generateProgressHTML = (completed, total) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isFinished = percentage === 100;
 
-  return `
+  let html = `
     <div class="stats-row">
       <span>${completed} / ${total} watched</span>
       <span>${percentage}%</span>
@@ -18,6 +20,16 @@ const generateProgressHTML = (completed, total) => {
       }" style="width: ${percentage}%"></div>
     </div>
   `;
+
+  if (isFinished) {
+    html += `
+      <button class="complete-btn" data-action="generate-certificate">
+        Claim Your Certificate!
+      </button>
+    `;
+  }
+
+  return html;
 };
 
 /**
@@ -161,37 +173,37 @@ export const renderUI = (
           : "";
 
         card.innerHTML = `
-          <div class="card-header">
-            <div style="flex: 1; min-width: 0;">
-                <div class="playlist-title" title="${playlist.playlistTitle}">
-                    ${playlist.playlistTitle}
-                </div>
-                ${pChannel}
+      <div class="card-header">
+        <div style="flex: 1; min-width: 0;">
+            <div class="playlist-title" title="${playlist.playlistTitle}">
+                ${playlist.playlistTitle}
             </div>
-            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
+            ${pChannel}
+        </div>
+        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
 
-          ${generateProgressHTML(
-            playlist.completedVideos.length,
-            playlist.totalVideos
-          )}
+      ${generateProgressHTML(
+        playlist.completedVideos.length,
+        playlist.totalVideos
+      )}
 
-          <button class="go-btn">Go to Playlist</button>
+      <button class="go-btn">Go to Playlist</button>
 
-          <div class="watched-list-container">
-            ${generateVideoNavigationHTML(
-              playlist.lastWatched,
-              playlist.upcomingVideo
-            )}
+      <div class="watched-list-container">
+        ${generateVideoNavigationHTML(
+          playlist.lastWatched,
+          playlist.upcomingVideo
+        )}
 
-            <div class="card-footer">
-                <button class="reset-btn">Reset Playlist</button>
-                <button class="delete-btn">Delete Playlist</button>
-            </div>
-          </div>
-        `;
+        <div class="card-footer">
+            <button class="reset-btn">Reset Playlist</button>
+            <button class="delete-btn">Delete Playlist</button>
+        </div>
+      </div>
+    `;
 
         const header = card.querySelector(".card-header");
         header.addEventListener("click", () => {
@@ -215,6 +227,22 @@ export const renderUI = (
           e.stopPropagation();
           onDelete(playlist.playlistId);
         });
+
+        const certificateBtn = card.querySelector(
+          '[data-action="generate-certificate"]'
+        );
+        if (certificateBtn) {
+          certificateBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const userName = await getUserName();
+            generateCertificate(
+              playlist.playlistTitle,
+              playlist.channelName || "",
+              playlist.totalVideos,
+              userName
+            );
+          });
+        }
 
         savedContainer.appendChild(card);
       });
