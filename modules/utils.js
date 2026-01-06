@@ -107,11 +107,25 @@ export const showSettingsModal = (currentName, callback) => {
  * Loads the custom Coming Soon font before generating certificate
  */
 const loadCustomFont = async () => {
-  const font = new FontFace("Coming Soon", "url(ComingSoon-Regular.ttf)");
+  const comingSoon = new FontFace(
+    "Coming Soon",
+    "url(fonts/ComingSoon-Regular.ttf)"
+  );
+  const googleSans = new FontFace("Google Sans", "url(fonts/GoogleSans.ttf)");
+  const googleSansSemiBold = new FontFace(
+    "Google Sans SemiBold",
+    "url(fonts/GoogleSans-SemiBold.ttf)"
+  );
 
   try {
-    const loadedFont = await font.load();
-    document.fonts.add(loadedFont);
+    const loadedComingSoon = await comingSoon.load();
+    const loadedGoogleSans = await googleSans.load();
+    const loadedGoogleSansSemibold = await googleSansSemiBold.load();
+
+    document.fonts.add(loadedGoogleSans);
+    document.fonts.add(loadedGoogleSansSemibold);
+    document.fonts.add(loadedComingSoon);
+
     return true;
   } catch (error) {
     console.error("Failed to load custom font:", error);
@@ -139,7 +153,7 @@ export const generateCertificate = async (
 
   // Load the certificate template
   const template = new Image();
-  template.src = "certificate-template.png";
+  template.src = "assets/certificate-template.png";
 
   template.onload = () => {
     // Draw the template as the base
@@ -151,7 +165,7 @@ export const generateCertificate = async (
 
     // Subtitle text: "This mini-certificate is proudly presented to"
     ctx.fillStyle = "#1f2937";
-    ctx.font = "32px Arial, sans-serif";
+    ctx.font = "32px Google Sans, sans-serif";
     ctx.fillText(
       "This mini-certificate is proudly presented to",
       canvas.width / 2,
@@ -174,7 +188,7 @@ export const generateCertificate = async (
 
     // "For completing X videos in"
     ctx.fillStyle = "#1f2937";
-    ctx.font = "32px Arial, sans-serif";
+    ctx.font = "32px Google Sans, sans-serif";
     ctx.fillText(
       `For completing ${totalVideos} videos in`,
       canvas.width / 2,
@@ -183,7 +197,7 @@ export const generateCertificate = async (
 
     // Playlist title and channel (bold)
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 52px Arial, sans-serif";
+    ctx.font = "bold 52px Google Sans SemiBold, sans-serif";
 
     // Combine playlist and channel
     const fullTitle = channelName
