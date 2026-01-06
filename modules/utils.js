@@ -104,7 +104,7 @@ export const showSettingsModal = (currentName, callback) => {
 /**
  * generateCertificate(playlistTitle, channelName, totalVideos, userName)
  * ----------------------------------------------------------------------
- * Generates and downloads a certificate matching the custom design
+ * Generates and downloads a certificate using the custom template design
  */
 export const generateCertificate = (
   playlistTitle,
@@ -113,103 +113,23 @@ export const generateCertificate = (
   userName = "YouTube Learner"
 ) => {
   const canvas = document.createElement("canvas");
-  // 2x resolution for better quality
   canvas.width = 2048;
   canvas.height = 1536;
   const ctx = canvas.getContext("2d");
 
-  // Load the certification logo
-  const logo = new Image();
-  logo.src = "certification-logo.png"; // Adjust path as needed
+  // Load the certificate template
+  const template = new Image();
+  template.src = "certificate-template.png";
 
-  logo.onload = () => {
-    // White background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  template.onload = () => {
+    // Draw the template as the base
+    ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
 
-    // Gradient border (purple to cyan)
-    const borderWidth = 40;
-    const gradient = ctx.createLinearGradient(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-    gradient.addColorStop(0, "#a855f7"); // Purple
-    gradient.addColorStop(1, "#06b6d4"); // Cyan
-
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = borderWidth;
-    ctx.strokeRect(
-      borderWidth / 2,
-      borderWidth / 2,
-      canvas.width - borderWidth,
-      canvas.height - borderWidth
-    );
-
-    // Inner blue border
-    const innerBorderOffset = 80;
-    ctx.strokeStyle = "#6366f1"; // Blue/Indigo
-    ctx.lineWidth = 3;
-    ctx.strokeRect(
-      innerBorderOffset,
-      innerBorderOffset,
-      canvas.width - innerBorderOffset * 2,
-      canvas.height - innerBorderOffset * 2
-    );
-
-    // Corner grid decorations
-    const drawCornerGrid = (x, y, flipX = 1, flipY = 1) => {
-      ctx.save();
-      ctx.strokeStyle = "#6366f1";
-      ctx.lineWidth = 3;
-
-      const gridSize = 60;
-      const cellSize = 30;
-
-      // Vertical line
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, y + flipY * gridSize);
-      ctx.stroke();
-
-      // Horizontal line
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + flipX * gridSize, y);
-      ctx.stroke();
-
-      // Grid cell
-      ctx.strokeRect(
-        flipX > 0 ? x : x - cellSize,
-        flipY > 0 ? y : y - cellSize,
-        cellSize,
-        cellSize
-      );
-
-      ctx.restore();
-    };
-
-    // Draw corner grids
-    drawCornerGrid(120, 120, 1, 1); // Top-left
-    drawCornerGrid(canvas.width - 120, 120, -1, 1); // Top-right
-    drawCornerGrid(canvas.width - 120, canvas.height - 120, -1, -1); // Bottom-right
-    drawCornerGrid(120, canvas.height - 120, 1, -1); // Bottom-left
-
-    // "Mini-" text (Arial Rounded)
-    ctx.fillStyle = "#000000";
-    ctx.font =
-      "48px 'Arial Rounded MT Bold', 'Arial Rounded', Arial, sans-serif";
+    // Configure text rendering
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("Mini-", canvas.width / 2, 280);
 
-    // "Certificate of Completion" text (Arial Rounded Bold)
-    ctx.font =
-      "bold 110px 'Arial Rounded MT Bold', 'Arial Rounded', Arial, sans-serif";
-    ctx.fillText("Certificate of Completion", canvas.width / 2, 390);
-
-    // Subtitle text
+    // Subtitle text: "This mini-certificate is proudly presented to"
     ctx.fillStyle = "#1f2937";
     ctx.font = "32px Arial, sans-serif";
     ctx.fillText(
@@ -218,7 +138,7 @@ export const generateCertificate = (
       520
     );
 
-    // User name with handwritten font (Coming Soon)
+    // User name with handwritten font
     ctx.fillStyle = "#000000";
     ctx.font = "90px 'Coming Soon', 'Comic Sans MS', cursive";
     ctx.fillText(userName, canvas.width / 2, 670);
@@ -276,13 +196,6 @@ export const generateCertificate = (
       ctx.fillText(textLine, canvas.width / 2, y + index * lineHeight);
     });
 
-    // Draw certification logo at bottom center
-    const logoSize = 120;
-    const logoX = canvas.width / 2 - logoSize / 2;
-    const logoY = canvas.height - 200;
-
-    ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-
     // Convert canvas to blob and download
     setTimeout(() => {
       canvas.toBlob((blob) => {
@@ -301,10 +214,11 @@ export const generateCertificate = (
     }, 100);
   };
 
-  // Handle logo loading error
-  logo.onerror = () => {
-    console.error("Failed to load certification logo");
-    // Still generate certificate without logo
-    logo.onload();
+  // Handle template loading error
+  template.onerror = () => {
+    console.error("Failed to load certificate template");
+    alert(
+      "Error: Could not load certificate template. Please ensure 'certificate-template.png' exists."
+    );
   };
 };
