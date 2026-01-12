@@ -199,8 +199,14 @@ export const renderUI = (
         )}
 
         <div class="card-footer">
-            <button class="reset-btn">Reset Playlist</button>
-            <button class="delete-btn">Delete Playlist</button>
+            <button class="reset-btn">
+              <img src="assets/reset-icon.png" alt="" class="button-icon" aria-hidden="true" />
+              Reset Playlist
+            </button>
+            <button class="delete-btn">
+              <img src="assets/trash-icon.png" alt="" class="button-icon" aria-hidden="true" />
+              Delete Playlist
+            </button>
         </div>
       </div>
     `;
