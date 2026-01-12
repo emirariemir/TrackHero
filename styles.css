@@ -191,7 +191,7 @@ h3 {
   font-size: 16px;
   font-weight: 600;
   color: #1e1e1e;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
@@ -200,7 +200,7 @@ h3 {
 .active-card .channel-name {
   font-size: 12px;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .active-card .video-count {
