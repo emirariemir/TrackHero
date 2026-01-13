@@ -192,7 +192,7 @@ export const generateCertificate = async (
     ctx.fillText(
       `For completing ${totalVideos} videos in`,
       canvas.width / 2,
-      830
+      860
     );
 
     // Playlist title and channel (bold)
@@ -208,7 +208,7 @@ export const generateCertificate = async (
     const maxWidth = 1600;
     const words = fullTitle.split(" ");
     let line = "";
-    let y = 910;
+    let y = 940;
     const lineHeight = 65;
     const lines = [];
 
