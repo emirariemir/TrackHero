@@ -11,6 +11,7 @@ import {
   savePlaylist,
   resetPlaylistProgress,
   deletePlaylist,
+  markPlaylistFinished,
 } from "./modules/storage.js";
 import { renderUI } from "./modules/ui.js";
 
@@ -86,7 +87,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       updatedList,
       handleSaveAction,
       handleResetPlaylistAction,
-      handleDeleteAction
+      handleDeleteAction,
+      handleFinishPlaylistAction
     );
   };
 
@@ -103,7 +105,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         updatedList,
         handleSaveAction,
         handleResetPlaylistAction,
-        handleDeleteAction
+        handleDeleteAction,
+        handleFinishPlaylistAction
       );
     }
   };
@@ -121,9 +124,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         updatedList,
         handleSaveAction,
         handleResetPlaylistAction,
-        handleDeleteAction
+        handleDeleteAction,
+        handleFinishPlaylistAction
       );
     }
+  };
+
+  const handleFinishPlaylistAction = async (playlistId) => {
+    await markPlaylistFinished(playlistId, true);
   };
 
   // 4. Initial Load & Render
@@ -134,6 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     savedPlaylists,
     handleSaveAction,
     handleResetPlaylistAction,
-    handleDeleteAction
+    handleDeleteAction,
+    handleFinishPlaylistAction
   );
 });

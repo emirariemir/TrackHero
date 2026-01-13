@@ -192,12 +192,12 @@ export const generateCertificate = async (
     ctx.fillText(
       `For completing ${totalVideos} videos in`,
       canvas.width / 2,
-      830
+      860
     );
 
     // Playlist title and channel (bold)
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 52px Google Sans SemiBold, sans-serif";
+    ctx.font = "bold 56px Google Sans SemiBold, sans-serif";
 
     // Combine playlist and channel
     const fullTitle = channelName

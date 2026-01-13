@@ -27,6 +27,7 @@ export const savePlaylist = async (playlistId, data) => {
     playlistTitle: data.title,
     channelName: data.channelName,
     totalVideos: data.total,
+    isFinished: false,
     completedVideos: [],
     lastWatched: null,
     upcomingVideo: null,
@@ -58,6 +59,7 @@ export const resetPlaylistProgress = async (playlistId) => {
     index === playlistIndex
       ? {
           ...playlist,
+          isFinished: false,
           completedVideos: [],
           lastWatched: null,
           upcomingVideo: null,
@@ -82,6 +84,34 @@ export const deletePlaylist = async (playlistId) => {
   const playlists = await getPlaylists();
 
   const updatedPlaylists = playlists.filter((p) => p.playlistId !== playlistId);
+
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
+      resolve(updatedPlaylists);
+    });
+  });
+};
+
+/**
+ * markPlaylistFinished async(playlistId, isFinished)
+ * --------------------------------------------------
+ * Flags a playlist as finished (or unfinished) and refreshes its lastUpdated timestamp.
+ */
+export const markPlaylistFinished = async (playlistId, isFinished = true) => {
+  const playlists = await getPlaylists();
+  const playlistIndex = playlists.findIndex((p) => p.playlistId === playlistId);
+
+  if (playlistIndex === -1) return playlists;
+
+  const updatedPlaylists = playlists.map((playlist, index) =>
+    index === playlistIndex
+      ? {
+          ...playlist,
+          isFinished,
+          lastUpdated: new Date().toISOString(),
+        }
+      : playlist
+  );
 
   return new Promise((resolve) => {
     chrome.storage.local.set({ playlists: updatedPlaylists }, () => {
