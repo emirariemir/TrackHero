@@ -197,7 +197,7 @@ export const generateCertificate = async (
 
     // Playlist title and channel (bold)
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 52px Google Sans SemiBold, sans-serif";
+    ctx.font = "bold 56px Google Sans SemiBold, sans-serif";
 
     // Combine playlist and channel
     const fullTitle = channelName
@@ -208,7 +208,7 @@ export const generateCertificate = async (
     const maxWidth = 1600;
     const words = fullTitle.split(" ");
     let line = "";
-    let y = 940;
+    let y = 910;
     const lineHeight = 65;
     const lines = [];
 
