@@ -78,7 +78,7 @@ const generateVideoNavigationHTML = (lastWatched, upcomingVideo) => {
 };
 
 /**
- * renderUI(currentId, currentData, playlists, onSave, onReset, onDelete)
+ * renderUI(currentId, currentData, playlists, onSave, onReset, onDelete, onFinish)
  * ---------------------------------------------------------------------
  * Renders the active playlist card with tracking actions and the saved playlists list with expandable details.
  * Handles empty states for missing active or saved playlists while wiring up reset/delete callbacks and progress displays.
@@ -89,13 +89,16 @@ export const renderUI = (
   playlists,
   onSave,
   onReset,
-  onDelete
+  onDelete,
+  onFinish
 ) => {
   const currentContainer = document.getElementById("current-section");
   const savedContainer = document.getElementById("saved-list");
+  const finishedContainer = document.getElementById("finished-list");
 
   currentContainer.innerHTML = "";
   savedContainer.innerHTML = "";
+  finishedContainer.innerHTML = "";
 
   const playlistIndex = playlists.findIndex((p) => p.playlistId === currentId);
   const isAlreadySaved = playlists.some((p) => p.playlistId === currentId);
@@ -155,13 +158,16 @@ export const renderUI = (
     currentContainer.appendChild(activeCard);
   }
 
-  if (playlists.length === 0) {
+  const activePlaylists = playlists.filter((playlist) => !playlist.isFinished);
+  const finishedPlaylists = playlists.filter((playlist) => playlist.isFinished);
+
+  if (activePlaylists.length === 0) {
     savedContainer.innerHTML =
       '<div class="empty-state">No saved playlists yet</div>';
   } else {
-    savedContainer.innerHTML = `<div class="saved-list-title">Currently Tracking (${playlists.length})</div>`;
+    savedContainer.innerHTML = `<div class="saved-list-title">Currently Tracking (${activePlaylists.length})</div>`;
 
-    playlists
+    activePlaylists
       .slice()
       .reverse()
       .forEach((playlist) => {
@@ -240,6 +246,9 @@ export const renderUI = (
         if (certificateBtn) {
           certificateBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
+            if (onFinish) {
+              await onFinish(playlist.playlistId);
+            }
             const userName = await getUserName();
             generateCertificate(
               playlist.playlistTitle,
@@ -251,6 +260,108 @@ export const renderUI = (
         }
 
         savedContainer.appendChild(card);
+      });
+  }
+
+  if (finishedPlaylists.length === 0) {
+    finishedContainer.innerHTML =
+      '<div class="empty-state">No finished playlists yet</div>';
+  } else {
+    finishedContainer.innerHTML = `<div class="saved-list-title">Finished (${finishedPlaylists.length})</div>`;
+
+    finishedPlaylists
+      .slice()
+      .reverse()
+      .forEach((playlist) => {
+        const card = document.createElement("div");
+        card.className = "playlist-item";
+
+        const pChannel = playlist.channelName
+          ? `<div class="channel-name">${playlist.channelName}</div>`
+          : "";
+
+        card.innerHTML = `
+      <div class="card-header">
+        <div style="flex: 1; min-width: 0;">
+            <div class="playlist-title" title="${playlist.playlistTitle}">
+                ${playlist.playlistTitle}
+            </div>
+            ${pChannel}
+        </div>
+        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      ${generateProgressHTML(
+        playlist.completedVideos.length,
+        playlist.totalVideos
+      )}
+
+      <button class="go-btn">Go to Playlist</button>
+
+      <div class="watched-list-container">
+        ${generateVideoNavigationHTML(
+          playlist.lastWatched,
+          playlist.upcomingVideo
+        )}
+
+        <div class="card-footer">
+            <button class="reset-btn">
+              <img src="assets/reset-icon.png" alt="" class="button-icon" aria-hidden="true" />
+              Reset Playlist
+            </button>
+            <button class="delete-btn">
+              <img src="assets/trash-icon.png" alt="" class="button-icon" aria-hidden="true" />
+              Delete Playlist
+            </button>
+        </div>
+      </div>
+    `;
+
+        const header = card.querySelector(".card-header");
+        header.addEventListener("click", () => {
+          card.classList.toggle("expanded");
+        });
+
+        const gotToBtn = card.querySelector(".go-btn");
+        gotToBtn.addEventListener("click", () => {
+          const playlistUrl = `https://www.youtube.com/playlist?list=${playlist.playlistId}`;
+          window.open(playlistUrl, "_blank");
+        });
+
+        const resetBtn = card.querySelector(".reset-btn");
+        resetBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onReset(playlist.playlistId);
+        });
+
+        const deleteBtn = card.querySelector(".delete-btn");
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onDelete(playlist.playlistId);
+        });
+
+        const certificateBtn = card.querySelector(
+          '[data-action="generate-certificate"]'
+        );
+        if (certificateBtn) {
+          certificateBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            if (onFinish) {
+              await onFinish(playlist.playlistId);
+            }
+            const userName = await getUserName();
+            generateCertificate(
+              playlist.playlistTitle,
+              playlist.channelName || "",
+              playlist.totalVideos,
+              userName
+            );
+          });
+        }
+
+        finishedContainer.appendChild(card);
       });
   }
 };
