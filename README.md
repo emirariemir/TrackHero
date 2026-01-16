@@ -236,5 +236,3 @@ If you’re exploring this repo:
 - Feel free to open issues
 - Suggest architectural improvements
 - Or just steal ideas for your own extensions
-
-Happy tracking!
