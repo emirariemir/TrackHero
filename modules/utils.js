@@ -104,13 +104,10 @@ export const showSettingsModal = (currentName, callback) => {
 /**
  * loadCustomFont()
  * ----------------
- * Loads the custom Coming Soon font before generating certificate
+ * Loads the custom Mynerve font before generating certificate
  */
 const loadCustomFont = async () => {
-  const comingSoon = new FontFace(
-    "Coming Soon",
-    "url(fonts/ComingSoon-Regular.ttf)"
-  );
+  const mynerve = new FontFace("Mynerve", "url(fonts/Mynerve-Regular.ttf)");
   const googleSans = new FontFace("Google Sans", "url(fonts/GoogleSans.ttf)");
   const googleSansSemiBold = new FontFace(
     "Google Sans SemiBold",
@@ -118,13 +115,13 @@ const loadCustomFont = async () => {
   );
 
   try {
-    const loadedComingSoon = await comingSoon.load();
+    const loadedMynerve = await mynerve.load();
     const loadedGoogleSans = await googleSans.load();
     const loadedGoogleSansSemibold = await googleSansSemiBold.load();
 
     document.fonts.add(loadedGoogleSans);
     document.fonts.add(loadedGoogleSansSemibold);
-    document.fonts.add(loadedComingSoon);
+    document.fonts.add(loadedMynerve);
 
     return true;
   } catch (error) {
@@ -174,7 +171,7 @@ export const generateCertificate = async (
 
     // User name with handwritten font
     ctx.fillStyle = "#000000";
-    ctx.font = "90px 'Coming Soon', 'Comic Sans MS', cursive";
+    ctx.font = "90px 'Mynerve', 'Comic Sans MS', cursive";
     ctx.fillText(userName, canvas.width / 2, 670);
 
     // Underline for name

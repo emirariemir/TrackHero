@@ -153,6 +153,27 @@ export const renderUI = (
 
       const innerCard = activeCard.querySelector(".active-card-inner");
       innerCard.appendChild(saveBtn);
+    } else {
+      const certificateBtn = activeCard.querySelector(
+        '[data-action="generate-certificate"]'
+      );
+      if (certificateBtn) {
+        certificateBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (onFinish) {
+            await onFinish(currentId);
+          }
+          const userName = await getUserName();
+          const activePlaylist = playlists[playlistIndex];
+          if (!activePlaylist) return;
+          generateCertificate(
+            activePlaylist.playlistTitle,
+            activePlaylist.channelName || "",
+            activePlaylist.totalVideos,
+            userName
+          );
+        });
+      }
     }
 
     currentContainer.appendChild(activeCard);

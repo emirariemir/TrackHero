@@ -217,7 +217,7 @@ function styleButton(btn, completed) {
   if (completed) {
     btn.textContent = "✓";
     btn.style.background = "#8fffb6";
-    btn.style.color = "#ffffff";
+    btn.style.color = "#1d1d1dff";
   } else {
     btn.textContent = "+";
     btn.style.background = "#e5e5e5";
