@@ -1,7 +1,7 @@
 {
   "name": "TrackHero",
   "version": "1.0.0",
-  "description": "Track your progress with ease and get certified.",
+  "description": "Track your progress with ease and get mini-certified.",
   "permissions": ["activeTab", "storage", "tabs", "scripting"],
   "host_permissions": ["https://*.youtube.com/*"],
   "background": {
