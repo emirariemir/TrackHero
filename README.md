@@ -1,3 +1,5 @@
+<img width="108" height="108" alt="github-icon" src="https://github.com/user-attachments/assets/2b969aff-bcd2-41c8-8375-439191046798" />
+
 # TrackHero – YouTube Playlist Progress Tracker
 
 TrackHero is a Chrome extension that helps you _actually finish_ YouTube playlists.
